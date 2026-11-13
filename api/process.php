@@ -7,6 +7,10 @@ require_once dirname(__DIR__) . '/src/LocalRunner.php';
 require_once dirname(__DIR__) . '/src/ReplicateClient.php';
 require_once dirname(__DIR__) . '/src/Processor.php';
 
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
+
 ini_set('display_errors', '0');
 ini_set('memory_limit', '512M');
 set_time_limit(0);

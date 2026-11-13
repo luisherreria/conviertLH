@@ -19,6 +19,13 @@ function clh_config()
         'max_files' => 8,
         'max_pixels' => 16000000,
         'poll_timeout_seconds' => 100,
+        'db' => [
+            'host' => '127.0.0.1',
+            'name' => 'convertlh',
+            'user' => 'root',
+            'pass' => '',
+            'charset' => 'utf8mb4',
+        ],
         'models' => [
             'remove_bg' => [
                 'owner' => 'cjwbw',
@@ -62,4 +69,59 @@ function clh_tmp_root()
         throw new UserException('La carpeta temporal no tiene permiso de escritura.');
     }
     return $dir;
+}
+
+function clh_cookie_path()
+{
+    $script = isset($_SERVER['SCRIPT_NAME']) ? (string) $_SERVER['SCRIPT_NAME'] : '/';
+    $dir = str_replace('\\', '/', dirname($script));
+    $dir = rtrim($dir, '/');
+    if ($dir === '' || $dir === '.') {
+        return '/';
+    }
+    return $dir . '/';
+}
+
+function clh_theme_ids()
+{
+    return ['naranja', 'cobre', 'ambar'];
+}
+
+function clh_current_theme()
+{
+    if (isset($_COOKIE['clh_theme']) && in_array($_COOKIE['clh_theme'], clh_theme_ids(), true)) {
+        return $_COOKIE['clh_theme'];
+    }
+    return 'naranja';
+}
+
+function clh_remember_theme($theme)
+{
+    if (!in_array($theme, clh_theme_ids(), true)) {
+        return;
+    }
+    setcookie('clh_theme', $theme, [
+        'expires' => time() + 3600 * 24 * 400,
+        'path' => clh_cookie_path(),
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['clh_theme'] = $theme;
+}
+
+function clh_h($value)
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => clh_cookie_path(),
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
 }

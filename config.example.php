@@ -10,6 +10,13 @@ return [
     'max_files' => 8,
     'max_pixels' => 16000000,
     'poll_timeout_seconds' => 180,
+    'db' => [
+        'host' => '127.0.0.1',
+        'name' => 'convertlh',
+        'user' => 'root',
+        'pass' => '',
+        'charset' => 'utf8mb4',
+    ],
     'models' => [
         'remove_bg' => [
             'owner' => 'sprited',

@@ -105,13 +105,18 @@
     Array.prototype.forEach.call(document.querySelectorAll('.tool'), function (button) {
       button.setAttribute('aria-pressed', button.getAttribute('data-tool') === next ? 'true' : 'false');
     });
+    var local = next === 'convert' || next === 'crop' || next === 'flip';
     document.getElementById('panel-keep').hidden = next !== 'remove_bg';
     document.getElementById('panel-scale').hidden = next !== 'upscale';
     document.getElementById('panel-format').hidden = next !== 'convert';
     document.getElementById('panel-bg-mode').hidden = next !== 'remove_bg';
-    document.getElementById('panel-color').hidden = next === 'upscale';
+    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip';
+    document.getElementById('panel-flip').hidden = next !== 'flip';
+    document.getElementById('panel-crop-note').hidden = next !== 'crop';
+    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip';
+    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip';
     document.getElementById('fill-hint').hidden = next !== 'convert';
-    document.getElementById('ai-hint').hidden = next === 'convert';
+    document.getElementById('ai-hint').hidden = local;
     syncColor();
   }
 
@@ -309,6 +314,8 @@
     data.set('crop', document.getElementById('crop').checked ? '1' : '0');
     data.set('dpi', document.getElementById('dpi').value);
     data.set('keep', keep.value);
+    var flip = document.querySelector('input[name="flip"]:checked');
+    data.set('flip', flip ? flip.value : 'horizontal');
     queue.forEach(function (item) { data.append('files[]', item.file, item.file.name); });
 
     var submitted = queue.slice();
@@ -317,13 +324,17 @@
     feedback.style.color = 'var(--muted)';
     feedback.textContent = tool === 'convert'
       ? 'Convirtiendo en el servidor…'
-      : (limits.aiRemote
-        ? (tool === 'remove_bg'
-          ? 'Quitando el fondo en Replicate. Suele tardar unos segundos.'
-          : 'Escalando en Replicate. Suele tardar unos segundos.')
-        : (tool === 'remove_bg'
-          ? 'Quitando el fondo en esta PC. Puede tardar unos minutos.'
-          : 'Escalando en esta PC. Puede tardar un momento.'));
+      : (tool === 'crop'
+        ? 'Recortando en el servidor…'
+        : (tool === 'flip'
+          ? 'Espejando en el servidor…'
+          : (limits.aiRemote
+            ? (tool === 'remove_bg'
+              ? 'Quitando el fondo en Replicate. Suele tardar unos segundos.'
+              : 'Escalando en Replicate. Suele tardar unos segundos.')
+            : (tool === 'remove_bg'
+              ? 'Quitando el fondo en esta PC. Puede tardar unos minutos.'
+              : 'Escalando en esta PC. Puede tardar un momento.'))));
 
     fetch('api/process.php', { method: 'POST', body: data })
       .then(function (response) {
@@ -348,6 +359,10 @@
       });
   });
 
-  setTool('remove_bg');
+  var requestedTool = new URLSearchParams(window.location.search).get('tool');
+  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip'].indexOf(requestedTool) === -1) {
+    requestedTool = 'remove_bg';
+  }
+  setTool(requestedTool);
   updateButton();
 })();

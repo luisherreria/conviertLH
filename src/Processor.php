@@ -23,8 +23,8 @@ class Processor
     private function run(array $post, array $files, $job)
     {
         $tool = isset($post['tool']) ? (string) $post['tool'] : '';
-        if (!in_array($tool, ['remove_bg', 'upscale', 'convert'], true)) {
-            throw new UserException('Elegí una herramienta: quitar fondo, escalar o convertir.');
+        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip'], true)) {
+            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar o espejar.');
         }
 
         $scale = isset($post['scale']) ? (int) $post['scale'] : 2;
@@ -65,13 +65,18 @@ class Processor
             throw new UserException('El nivel de conservación tiene que estar entre 0 y 100.');
         }
 
+        $flip = isset($post['flip']) ? (string) $post['flip'] : 'horizontal';
+        if (!in_array($flip, ['horizontal', 'vertical', 'both'], true)) {
+            throw new UserException('Elegí espejo horizontal, vertical o ambos.');
+        }
+
         $uploads = $this->normalizeFiles($files);
         $maxFiles = max(1, (int) $this->config['max_files']);
         if (count($uploads) > $maxFiles) {
             throw new UserException('Podés subir hasta ' . $maxFiles . ' imágenes por vez.');
         }
 
-        if ($tool !== 'convert' && !$this->usesReplicate() && !LocalRunner::isReady()) {
+        if (!in_array($tool, ['convert', 'crop', 'flip'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
             throw new UserException('Falta el token de Replicate. Convertir formatos sigue disponible.');
         }
 
@@ -102,6 +107,7 @@ class Processor
                     $crop,
                     $dpi,
                     $keep,
+                    $flip,
                     $notices
                 );
             } catch (UserException $e) {
@@ -151,21 +157,54 @@ class Processor
         ];
     }
 
+    private function formatFromMime($mime)
+    {
+        if ($mime === 'image/jpeg') {
+            return 'jpg';
+        }
+        if ($mime === 'image/webp') {
+            return 'webp';
+        }
+        if ($mime === 'image/gif') {
+            return 'gif';
+        }
+        if ($mime === 'image/bmp' || $mime === 'image/x-ms-bmp') {
+            return 'bmp';
+        }
+        return 'png';
+    }
+
     private function usesReplicate()
     {
         return trim((string) ($this->config['replicate_token'] ?? '')) !== '';
     }
 
-    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, array &$notices)
+    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, array &$notices)
     {
-        if ($tool === 'convert') {
+        if ($tool === 'convert' || $tool === 'crop' || $tool === 'flip') {
+            $outputFormat = $format;
+            $doCrop = $crop;
+            $qualityOut = $quality;
+            if ($tool === 'crop' || $tool === 'flip') {
+                $outputFormat = $this->formatFromMime($mime);
+                if (!Formats::canWrite($outputFormat)) {
+                    $notices[] = 'Este formato se entrega en PNG.';
+                    $outputFormat = 'png';
+                }
+                $qualityOut = 92;
+                $doCrop = $tool === 'crop';
+            }
+            $image = Converter::load($path);
+            if ($tool === 'flip') {
+                $image = Converter::flip($image, $flip);
+            }
             return $this->finishLocal(
-                Converter::load($path),
-                $format,
-                $quality,
+                $image,
+                $outputFormat,
+                $qualityOut,
                 false,
                 $color,
-                $crop,
+                $doCrop,
                 $dpi,
                 $originalName,
                 $index,

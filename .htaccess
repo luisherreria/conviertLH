@@ -19,5 +19,6 @@ Options -Indexes
   RewriteRule ^src(/|$) - [F,L]
   RewriteRule ^storage(/|$) - [F,L]
   RewriteRule ^tools(/|$) - [F,L]
+  RewriteRule ^sql(/|$) - [F,L]
   RewriteRule (?:^|/)\. - [F,L]
 </IfModule>

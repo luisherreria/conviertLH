@@ -21,6 +21,24 @@ class Converter
         return self::toTruecolor($image);
     }
 
+    public static function flip($image, $direction)
+    {
+        if (!function_exists('imageflip')) {
+            throw new UserException('Este PHP no puede espejar imágenes.');
+        }
+        if ($direction === 'vertical') {
+            $mode = IMG_FLIP_VERTICAL;
+        } elseif ($direction === 'both') {
+            $mode = IMG_FLIP_BOTH;
+        } else {
+            $mode = IMG_FLIP_HORIZONTAL;
+        }
+        if (!imageflip($image, $mode)) {
+            throw new UserException('No se pudo espejar la imagen.');
+        }
+        return $image;
+    }
+
     public static function cropToContent($image)
     {
         $width = imagesx($image);
