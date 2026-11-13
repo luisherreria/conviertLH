@@ -1,0 +1,23 @@
+Options -Indexes
+
+<IfModule php7_module>
+  php_value upload_max_filesize 12M
+  php_value post_max_size 80M
+  php_value max_file_uploads 10
+  php_value max_execution_time 240
+  php_value max_input_time 240
+</IfModule>
+
+<FilesMatch "^(config\.php|config\.example\.php)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^src(/|$) - [F,L]
+  RewriteRule ^storage(/|$) - [F,L]
+  RewriteRule ^tools(/|$) - [F,L]
+  RewriteRule (?:^|/)\. - [F,L]
+</IfModule>

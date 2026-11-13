@@ -1,0 +1,10 @@
+# torch y torchvision se instalan aparte, desde el índice CPU:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+transformers
+pillow
+spandrel
+safetensors
+huggingface_hub
+timm
+einops
+kornia

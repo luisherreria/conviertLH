@@ -1,0 +1,8 @@
+config.php
+storage/tmp/*
+!storage/tmp/.gitkeep
+tools/ai/venv/
+tools/ai/cache/
+tools/ai/weights/
+__pycache__/
+*.pyc
