@@ -87,7 +87,8 @@ INSERT INTO tools (slug, name, summary, credit_cost, credit_note, sort_order) VA
 ('upscale', 'Escalar', '2× o 4× con Real-ESRGAN.', 2, '2× usa 2 créditos. 4× usa 4.', 2),
 ('convert', 'Convertir', 'Lote, calidad y ZIP.', 0, 'No usa créditos.', 3),
 ('crop', 'Recortar', 'Saca el margen vacío.', 0, 'No usa créditos.', 4),
-('flip', 'Espejar', 'Horizontal, vertical o ambos.', 0, 'No usa créditos.', 5)
+('flip', 'Espejar', 'Horizontal, vertical o ambos.', 0, 'No usa créditos.', 5),
+('halftone', 'Semitono', 'Puntos para DTF, foto o base blanca.', 0, 'No usa créditos.', 6)
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   summary = VALUES(summary),
@@ -101,19 +102,23 @@ INSERT INTO level_tools (level_id, tool, allowed) VALUES
 (1, 'convert', 1),
 (1, 'crop', 1),
 (1, 'flip', 1),
+(1, 'halftone', 1),
 (2, 'remove_bg', 1),
 (2, 'upscale', 1),
 (2, 'convert', 1),
 (2, 'crop', 1),
 (2, 'flip', 1),
+(2, 'halftone', 1),
 (3, 'remove_bg', 1),
 (3, 'upscale', 1),
 (3, 'convert', 1),
 (3, 'crop', 1),
 (3, 'flip', 1),
+(3, 'halftone', 1),
 (4, 'remove_bg', 1),
 (4, 'upscale', 1),
 (4, 'convert', 1),
 (4, 'crop', 1),
-(4, 'flip', 1)
+(4, 'flip', 1),
+(4, 'halftone', 1)
 ON DUPLICATE KEY UPDATE allowed = VALUES(allowed);

@@ -18,7 +18,7 @@ clh_nav('');
 
   <h2>Imágenes</h2>
   <p>La imagen se usa para generar el resultado y se borra al responder. No la guardamos en un álbum ni la usamos para entrenar un modelo propio.</p>
-  <p>Quitar fondo y escalar envían el archivo a Replicate, que hace ese procesamiento. Convertir, recortar y espejar no salen de esta máquina.</p>
+  <p>Quitar fondo y escalar envían el archivo a Replicate, que hace ese procesamiento. Convertir, recortar, espejar y semitono no salen de esta máquina.</p>
 
   <h2>Cookies</h2>
   <p>Hay una cookie de sesión para saber si entraste, y otra para el tema de color (naranja, cobre o ámbar). No usamos cookies de publicidad ni de medición de terceros.</p>

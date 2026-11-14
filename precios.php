@@ -16,7 +16,7 @@ try {
 <main class="site" id="contenido">
   <p class="kicker">Precios de lista</p>
   <h1>Simple, en pesos, con permiso por herramienta.</h1>
-  <p class="lede">Estos montos son la lista para cuando conectemos Mercado Pago. Crear una cuenta hoy no cobra y abre Mesa. Quitar fondo y escalar 2× usan 2 créditos. Escalar 4× usa 4. Convertir, recortar y espejar no usan.</p>
+  <p class="lede">Estos montos son la lista para cuando conectemos Mercado Pago. Crear una cuenta hoy no cobra y abre Mesa. Quitar fondo y escalar 2× usan 2 créditos. Escalar 4× usa 4. Convertir, recortar, espejar y semitono no usan.</p>
 
   <?php if ($dbError !== ''): ?>
     <p class="alert"><?= clh_h($dbError) ?></p>

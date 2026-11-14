@@ -23,8 +23,8 @@ class Processor
     private function run(array $post, array $files, $job)
     {
         $tool = isset($post['tool']) ? (string) $post['tool'] : '';
-        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip'], true)) {
-            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar o espejar.');
+        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone'], true)) {
+            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar, espejar o semitono.');
         }
 
         $scale = isset($post['scale']) ? (int) $post['scale'] : 2;
@@ -70,13 +70,30 @@ class Processor
             throw new UserException('Elegí espejo horizontal, vertical o ambos.');
         }
 
+        $halftone = isset($post['halftone']) ? (string) $post['halftone'] : 'photo';
+        if ($halftone !== 'photo' && $halftone !== 'white') {
+            throw new UserException('Elegí semitono de foto o de base blanca.');
+        }
+        $lpi = isset($post['lpi']) ? (int) $post['lpi'] : 45;
+        if (!in_array($lpi, [35, 45, 55], true)) {
+            throw new UserException('La lineatura tiene que ser 35, 45 o 55 LPI.');
+        }
+        $halftoneCap = isset($post['halftone_cap']) ? (int) $post['halftone_cap'] : 85;
+        if ($halftoneCap < 40 || $halftoneCap > 100) {
+            throw new UserException('El tope del punto tiene que estar entre 40 y 100.');
+        }
+        $halftoneInk = isset($post['halftone_ink']) ? (string) $post['halftone_ink'] : 'black';
+        if ($halftoneInk !== 'black' && $halftoneInk !== 'white') {
+            throw new UserException('Elegí punto negro o blanco.');
+        }
+
         $uploads = $this->normalizeFiles($files);
         $maxFiles = max(1, (int) $this->config['max_files']);
         if (count($uploads) > $maxFiles) {
             throw new UserException('Podés subir hasta ' . $maxFiles . ' imágenes por vez.');
         }
 
-        if (!in_array($tool, ['convert', 'crop', 'flip'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
+        if (!in_array($tool, ['convert', 'crop', 'flip', 'halftone'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
             throw new UserException('Falta el token de Replicate. Convertir formatos sigue disponible.');
         }
 
@@ -108,6 +125,10 @@ class Processor
                     $dpi,
                     $keep,
                     $flip,
+                    $halftone,
+                    $lpi,
+                    $halftoneCap,
+                    $halftoneInk,
                     $notices
                 );
             } catch (UserException $e) {
@@ -179,8 +200,28 @@ class Processor
         return trim((string) ($this->config['replicate_token'] ?? '')) !== '';
     }
 
-    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, array &$notices)
+    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, $halftone, $lpi, $halftoneCap, $halftoneInk, array &$notices)
     {
+        if ($tool === 'halftone') {
+            $screenDpi = $dpi >= 150 ? $dpi : 300;
+            if ($screenDpi !== $dpi) {
+                $notices[] = 'El semitono se calculó a ' . $screenDpi . ' DPI y 45°.';
+            }
+            $image = Converter::halftone(Converter::load($path), $lpi, $screenDpi, $halftone, $halftoneCap, $halftoneInk);
+            return $this->finishLocal(
+                $image,
+                'png',
+                92,
+                false,
+                $color,
+                false,
+                $screenDpi,
+                $originalName,
+                $index,
+                $notices
+            );
+        }
+
         if ($tool === 'convert' || $tool === 'crop' || $tool === 'flip') {
             $outputFormat = $format;
             $doCrop = $crop;

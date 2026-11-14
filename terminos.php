@@ -11,7 +11,7 @@ clh_nav('');
   <p>Estos términos son de ConvertLH, el taller de imágenes de esta instalación. No reemplazan el asesoramiento de un abogado. La ley aplicable es la de la República Argentina.</p>
 
   <h2>El servicio</h2>
-  <p>ConvertLH ofrece cinco herramientas: quitar fondo, escalar, convertir, recortar y espejar. Quitar fondo y escalar usan modelos de IA a través de Replicate. Convertir, recortar y espejar se procesan en el servidor donde está instalado el taller.</p>
+  <p>ConvertLH ofrece seis herramientas: quitar fondo, escalar, convertir, recortar, espejar y semitono. Quitar fondo y escalar usan modelos de IA a través de Replicate. Convertir, recortar, espejar y semitono se procesan en el servidor donde está instalado el taller.</p>
   <p>El resultado depende de la imagen de origen. No prometemos un archivo listo para imprimir en todos los casos, ni un tiempo fijo de respuesta.</p>
 
   <h2>La cuenta</h2>
@@ -19,7 +19,7 @@ clh_nav('');
   <p>Sos responsable de la contraseña y de lo que se suba desde tu sesión.</p>
 
   <h2>Créditos y precios</h2>
-  <p>Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Convertir, recortar y espejar no usan créditos. Los precios publicados están en pesos argentinos y son una lista: Mercado Pago todavía no está conectado, así que elegir un plan pago no genera un cobro ni activa ese plan.</p>
+  <p>Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Convertir, recortar, espejar y semitono no usan créditos. Los precios publicados están en pesos argentinos y son una lista: Mercado Pago todavía no está conectado, así que elegir un plan pago no genera un cobro ni activa ese plan.</p>
   <p>Cuando el cobro exista, los créditos del plan se van a cargar según lo que diga la oferta vigente en ese momento. El saldo y cada movimiento van a quedar en la cuenta.</p>
 
   <h2>Archivos</h2>

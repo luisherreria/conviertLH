@@ -39,6 +39,22 @@ class Converter
         return $image;
     }
 
+    public static function halftone($image, $lpi, $dpi, $mode, $cap, $ink)
+    {
+        $origW = imagesx($image);
+        $origH = imagesy($image);
+        $cell = (int) max(4, (int) round($dpi / $lpi));
+        $rotated = self::rotateSheet($image, -45);
+        imagedestroy($image);
+        $screen = self::screenDots($rotated, $cell, $mode, $cap, $ink);
+        imagedestroy($rotated);
+        $back = self::rotateSheet($screen, 45);
+        imagedestroy($screen);
+        $cropped = self::cropCenter($back, $origW, $origH);
+        imagedestroy($back);
+        return $cropped;
+    }
+
     public static function cropToContent($image)
     {
         $width = imagesx($image);
@@ -234,6 +250,110 @@ class Converter
             throw new UserException('El color tiene que ser un hexadecimal como #ffffff.');
         }
         return $hex;
+    }
+
+    private static function blank($width, $height)
+    {
+        $image = imagecreatetruecolor($width, $height);
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        $clear = imagecolorallocatealpha($image, 0, 0, 0, 127);
+        imagefilledrectangle($image, 0, 0, $width, $height, $clear);
+        return $image;
+    }
+
+    private static function rotateSheet($image, $angle)
+    {
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        $transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
+        $rotated = imagerotate($image, $angle, $transparent);
+        if (!$rotated) {
+            throw new UserException('No se pudo girar la trama del semitono.');
+        }
+        imagealphablending($rotated, false);
+        imagesavealpha($rotated, true);
+        return $rotated;
+    }
+
+    private static function cropCenter($image, $width, $height)
+    {
+        $out = self::blank($width, $height);
+        $sx = (int) floor((imagesx($image) - $width) / 2);
+        $sy = (int) floor((imagesy($image) - $height) / 2);
+        imagealphablending($out, false);
+        imagecopy($out, $image, 0, 0, $sx, $sy, $width, $height);
+        imagesavealpha($out, true);
+        return $out;
+    }
+
+    private static function screenDots($image, $cell, $mode, $cap, $ink)
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $cover = imagecreatetruecolor($width, $height);
+        $palette = [];
+        for ($i = 0; $i <= 255; $i++) {
+            $palette[$i] = imagecolorallocate($cover, $i, $i, $i);
+        }
+        $capScale = max(0, min(100, (int) $cap)) / 100;
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $rgba = imagecolorat($image, $x, $y);
+                $alpha = ($rgba >> 24) & 127;
+                $opacity = (127 - $alpha) / 127;
+                if ($mode === 'white') {
+                    $coverage = $opacity;
+                } else {
+                    $red = ($rgba >> 16) & 255;
+                    $green = ($rgba >> 8) & 255;
+                    $blue = $rgba & 255;
+                    $lum = (0.2126 * $red + 0.7152 * $green + 0.0722 * $blue) / 255;
+                    $coverage = (1 - $lum) * $opacity;
+                }
+                $value = (int) max(0, min(255, (int) round($coverage * $capScale * 255)));
+                imagesetpixel($cover, $x, $y, $palette[$value]);
+            }
+        }
+
+        $cellsX = max(1, (int) ceil($width / $cell));
+        $cellsY = max(1, (int) ceil($height / $cell));
+        $small = imagecreatetruecolor($cellsX, $cellsY);
+        imagecopyresampled($small, $cover, 0, 0, 0, 0, $cellsX, $cellsY, $width, $height);
+        imagedestroy($cover);
+
+        $out = self::blank($width, $height);
+        imagealphablending($out, true);
+        if ($ink === 'white') {
+            $dot = imagecolorallocatealpha($out, 255, 255, 255, 0);
+        } else {
+            $dot = imagecolorallocatealpha($out, 0, 0, 0, 0);
+        }
+        $maxDiameter = ($cell * 2) / sqrt(M_PI);
+        for ($j = 0; $j < $cellsY; $j++) {
+            for ($i = 0; $i < $cellsX; $i++) {
+                $tone = (imagecolorat($small, $i, $j) & 255) / 255;
+                if ($tone < 0.04) {
+                    continue;
+                }
+                $diameter = $maxDiameter * sqrt($tone);
+                if ($diameter < 1) {
+                    continue;
+                }
+                imagefilledellipse(
+                    $out,
+                    (int) round(($i + 0.5) * $cell),
+                    (int) round(($j + 0.5) * $cell),
+                    (int) round($diameter),
+                    (int) round($diameter),
+                    $dot
+                );
+            }
+        }
+        imagedestroy($small);
+        imagealphablending($out, false);
+        imagesavealpha($out, true);
+        return $out;
     }
 
     private static function toTruecolor($image)

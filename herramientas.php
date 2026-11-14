@@ -6,7 +6,7 @@ clh_head('Herramientas — ConvertLH');
 clh_nav('herramientas');
 ?>
 <main class="site" id="contenido">
-  <p class="kicker">Las cinco</p>
+  <p class="kicker">Las seis</p>
   <h1>Cada herramienta hace una sola cosa, y la hace en el lote.</h1>
   <p class="lede">Podés subir hasta 8 archivos. Si hay más de un resultado, bajan en un ZIP. El permiso de cada una sale del plan, no de un interruptor escondido.</p>
 

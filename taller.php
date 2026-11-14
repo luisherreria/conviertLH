@@ -98,6 +98,10 @@ $account = clh_user();
         <strong>Espejar</strong>
         <span>Horizontal o vertical. Sin costo.</span>
       </button>
+      <button class="tool" type="button" data-tool="halftone" role="tab" aria-pressed="false">
+        <strong>Semitono</strong>
+        <span>Puntos para DTF. Sin costo.</span>
+      </button>
     </div>
 
     <div class="layout">
@@ -166,6 +170,27 @@ $account = clh_user();
               <label><input type="radio" name="flip" value="both"> Ambos</label>
             </div>
             <p class="hint">Voltea el lote en esta PC. Varias imágenes bajan en un ZIP. No usa Replicate.</p>
+          </div>
+
+          <div id="panel-halftone" class="field" hidden>
+            <span>Uso</span>
+            <div class="choice">
+              <label><input type="radio" name="halftone" value="photo" checked> Foto</label>
+              <label><input type="radio" name="halftone" value="white"> Base blanca</label>
+            </div>
+            <span>Lineatura</span>
+            <div class="choice">
+              <label><input type="radio" name="lpi" value="35"> 35 LPI</label>
+              <label><input type="radio" name="lpi" value="45" checked> 45 LPI</label>
+              <label><input type="radio" name="lpi" value="55"> 55 LPI</label>
+            </div>
+            <label for="halftone-cap">Tope del punto <output id="halftone-cap-out" for="halftone-cap">85%</output></label>
+            <input id="halftone-cap" name="halftone_cap" type="range" min="40" max="100" value="85">
+            <div class="choice">
+              <label><input type="radio" name="halftone_ink" value="black" checked> Punto negro</label>
+              <label><input type="radio" name="halftone_ink" value="white"> Punto blanco</label>
+            </div>
+            <p class="hint">La foto pasa los tonos a puntos. La base blanca usa la opacidad, para la capa de blanco del DTF. El tope en 85 deja aire en los planos. Sale PNG a 45°. No usa Replicate.</p>
           </div>
 
           <div id="panel-crop-note" class="field" hidden>

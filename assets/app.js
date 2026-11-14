@@ -105,16 +105,17 @@
     Array.prototype.forEach.call(document.querySelectorAll('.tool'), function (button) {
       button.setAttribute('aria-pressed', button.getAttribute('data-tool') === next ? 'true' : 'false');
     });
-    var local = next === 'convert' || next === 'crop' || next === 'flip';
+    var local = next === 'convert' || next === 'crop' || next === 'flip' || next === 'halftone';
     document.getElementById('panel-keep').hidden = next !== 'remove_bg';
     document.getElementById('panel-scale').hidden = next !== 'upscale';
     document.getElementById('panel-format').hidden = next !== 'convert';
     document.getElementById('panel-bg-mode').hidden = next !== 'remove_bg';
-    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip';
+    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip' || next === 'halftone';
     document.getElementById('panel-flip').hidden = next !== 'flip';
+    document.getElementById('panel-halftone').hidden = next !== 'halftone';
     document.getElementById('panel-crop-note').hidden = next !== 'crop';
-    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip';
-    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip';
+    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip' || next === 'halftone';
+    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip' || next === 'halftone';
     document.getElementById('fill-hint').hidden = next !== 'convert';
     document.getElementById('ai-hint').hidden = local;
     syncColor();
@@ -269,6 +270,12 @@
     keepOut.textContent = keepLabel(keep.value);
   });
 
+  var halftoneCap = document.getElementById('halftone-cap');
+  var halftoneCapOut = document.getElementById('halftone-cap-out');
+  halftoneCap.addEventListener('input', function () {
+    halftoneCapOut.textContent = halftoneCap.value + '%';
+  });
+
   document.getElementById('preset').addEventListener('click', function () {
     document.getElementById('crop').checked = true;
     document.getElementById('dpi').value = '300';
@@ -316,25 +323,36 @@
     data.set('keep', keep.value);
     var flip = document.querySelector('input[name="flip"]:checked');
     data.set('flip', flip ? flip.value : 'horizontal');
+    var halftone = document.querySelector('input[name="halftone"]:checked');
+    data.set('halftone', halftone ? halftone.value : 'photo');
+    var lpi = document.querySelector('input[name="lpi"]:checked');
+    data.set('lpi', lpi ? lpi.value : '45');
+    data.set('halftone_cap', document.getElementById('halftone-cap').value);
+    var ink = document.querySelector('input[name="halftone_ink"]:checked');
+    data.set('halftone_ink', ink ? ink.value : 'black');
     queue.forEach(function (item) { data.append('files[]', item.file, item.file.name); });
 
     var submitted = queue.slice();
     submitBtn.disabled = true;
     submitBtn.textContent = 'Procesando…';
     feedback.style.color = 'var(--muted)';
-    feedback.textContent = tool === 'convert'
-      ? 'Convirtiendo en el servidor…'
-      : (tool === 'crop'
-        ? 'Recortando en el servidor…'
-        : (tool === 'flip'
-          ? 'Espejando en el servidor…'
-          : (limits.aiRemote
-            ? (tool === 'remove_bg'
-              ? 'Quitando el fondo en Replicate. Suele tardar unos segundos.'
-              : 'Escalando en Replicate. Suele tardar unos segundos.')
-            : (tool === 'remove_bg'
-              ? 'Quitando el fondo en esta PC. Puede tardar unos minutos.'
-              : 'Escalando en esta PC. Puede tardar un momento.'))));
+    var busyText = {
+      convert: 'Convirtiendo en el servidor…',
+      crop: 'Recortando en el servidor…',
+      flip: 'Espejando en el servidor…',
+      halftone: 'Armando el semitono en el servidor…'
+    };
+    if (busyText[tool]) {
+      feedback.textContent = busyText[tool];
+    } else if (limits.aiRemote) {
+      feedback.textContent = tool === 'remove_bg'
+        ? 'Quitando el fondo en Replicate. Suele tardar unos segundos.'
+        : 'Escalando en Replicate. Suele tardar unos segundos.';
+    } else {
+      feedback.textContent = tool === 'remove_bg'
+        ? 'Quitando el fondo en esta PC. Puede tardar unos minutos.'
+        : 'Escalando en esta PC. Puede tardar un momento.';
+    }
 
     fetch('api/process.php', { method: 'POST', body: data })
       .then(function (response) {
@@ -360,7 +378,7 @@
   });
 
   var requestedTool = new URLSearchParams(window.location.search).get('tool');
-  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip'].indexOf(requestedTool) === -1) {
+  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone'].indexOf(requestedTool) === -1) {
     requestedTool = 'remove_bg';
   }
   setTool(requestedTool);
