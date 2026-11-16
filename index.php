@@ -11,13 +11,13 @@ try {
 }
 $stories = clh_tool_stories();
 
-clh_head('ConvertLH — Imágenes listas para producir');
+clh_head('SubliEdit — Imágenes listas para producir');
 clh_nav('inicio');
 ?>
 <main class="site" id="contenido">
   <p class="kicker">Taller de imágenes para imprimir y entregar</p>
   <h1>El archivo sale en un paso, no en una tarde.</h1>
-  <p class="lede">Seis herramientas en el navegador. Quitar fondo y escalar usan IA y créditos. Convertir, recortar, espejar y semitono corren en esta máquina y no descuentan nada.</p>
+  <p class="lede">Siete herramientas en el navegador. Quitar fondo y escalar usan IA y créditos. Crear mockup usa 1 crédito. Convertir, recortar, espejar y semitono corren en esta máquina y no descuentan nada.</p>
   <div class="hero-actions">
     <a class="btn" href="login.php?alta=1">Crear cuenta</a>
     <a class="btn-line" href="herramientas.php">Ver herramientas</a>
@@ -26,7 +26,7 @@ clh_nav('inicio');
   <ul class="checks">
     <li>Los créditos se usan solo cuando interviene la IA.</li>
     <li>La imagen se procesa para responder y después se borra.</li>
-    <li>El precio de lista está en pesos. El cobro se conecta después.</li>
+    <li>El precio está en pesos y se cobra con Mercado Pago.</li>
   </ul>
 
   <section class="band">
@@ -43,7 +43,7 @@ clh_nav('inicio');
       </article>
       <article class="card">
         <h3>Formato que no abre</h3>
-        <p>Hay que pasar un lote a PNG, JPG, WEBP, BMP o GIF sin instalar nada.</p>
+        <p>Hay que pasar una imagen a PNG, JPG, WEBP, BMP o GIF sin instalar nada.</p>
       </article>
       <article class="card">
         <h3>Margen y espejo</h3>
@@ -53,7 +53,7 @@ clh_nav('inicio');
   </section>
 
   <section class="band">
-    <h2>Seis herramientas, en la misma pantalla.</h2>
+    <h2>Siete herramientas, en la misma pantalla.</h2>
     <p>Cada una abre directo en el taller. El permiso de usarla depende del plan.</p>
     <div class="cards tools">
       <?php foreach ($stories as $story): ?>
@@ -77,7 +77,7 @@ clh_nav('inicio');
       </article>
       <article class="card">
         <h3>Entrega de diseño</h3>
-        <p>Convertís el lote, fijás calidad y DPI, y bajás un ZIP sin rearmar cada archivo.</p>
+        <p>Convertís la imagen, fijás calidad y DPI, y la bajás lista.</p>
       </article>
       <article class="card">
         <h3>Foto de producto</h3>
@@ -99,7 +99,7 @@ clh_nav('inicio');
       </article>
       <article class="card">
         <h3>Permiso por herramienta</h3>
-        <p>Cada plan habilita o no cada una de las seis. No es un paquete cerrado para siempre.</p>
+        <p>Cada plan habilita o no cada una de las siete. No es un paquete cerrado para siempre.</p>
       </article>
       <article class="card">
         <h3>Tres colores de tema</h3>
@@ -111,7 +111,7 @@ clh_nav('inicio');
   <section class="band">
     <h2>Números del taller, sin promesas de velocidad.</h2>
     <div class="stats">
-      <article class="stat"><strong>6</strong><span>herramientas en la misma pantalla</span></article>
+      <article class="stat"><strong>7</strong><span>herramientas en la misma pantalla</span></article>
       <article class="stat"><strong>2</strong><span>créditos por fondo o por escala 2×</span></article>
       <article class="stat"><strong>0</strong><span>créditos por convertir, recortar, espejar o semitono</span></article>
     </div>
@@ -119,7 +119,7 @@ clh_nav('inicio');
 
   <section class="band" id="planes">
     <h2>Precios de lista, en pesos.</h2>
-    <p>Crear una cuenta hoy no cobra. Entra en Mesa. Los otros planes se van a activar cuando el cobro con Mercado Pago esté conectado.</p>
+    <p>Crear una cuenta no cobra y entra en Mesa. Un plan pago se activa cuando Mercado Pago aprueba el pago.</p>
     <?php if ($catalog): ?>
       <div class="plans">
         <?php foreach ($catalog['levels'] as $level): ?>

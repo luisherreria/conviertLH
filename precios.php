@@ -1,8 +1,13 @@
 <?php
 
 require_once __DIR__ . '/src/Site.php';
+require_once __DIR__ . '/src/Payments.php';
 
-clh_head('Precios — ConvertLH');
+clh_site_boot();
+$user = clh_user();
+$flash = clh_flash_take();
+
+clh_head('Precios — SubliEdit');
 clh_nav('precios');
 
 $catalog = null;
@@ -16,7 +21,21 @@ try {
 <main class="site" id="contenido">
   <p class="kicker">Precios de lista</p>
   <h1>Simple, en pesos, con permiso por herramienta.</h1>
-  <p class="lede">Estos montos son la lista para cuando conectemos Mercado Pago. Crear una cuenta hoy no cobra y abre Mesa. Quitar fondo y escalar 2× usan 2 créditos. Escalar 4× usa 4. Convertir, recortar, espejar y semitono no usan.</p>
+  <p class="lede">Elegir un plan pago abre Mercado Pago. El plan y los créditos del mes se cargan cuando el pago queda aprobado. Crear una cuenta no cobra y entra en Mesa. Quitar fondo y escalar 2× usan 2 créditos. Escalar 4× usa 4. Convertir, recortar, espejar y semitono no usan.</p>
+  <?php
+    $sandbox = false;
+    try {
+        $sandbox = MercadoPago::fromConfig()->isTest();
+    } catch (Exception $e) {
+        $sandbox = false;
+    }
+  ?>
+  <?php if ($sandbox): ?>
+    <p class="alert">La credencial cargada es de prueba. El vendedor de ese checkout no puede pagarse a sí mismo: abrí una ventana de incógnito, entrá con otro usuario de prueba (el comprador) y usá la tarjeta Visa que muestra tu panel, con titular APRO.</p>
+  <?php endif; ?>
+  <?php if ($flash !== ''): ?>
+    <p class="alert"><?= clh_h($flash) ?></p>
+  <?php endif; ?>
 
   <?php if ($dbError !== ''): ?>
     <p class="alert"><?= clh_h($dbError) ?></p>
@@ -36,11 +55,21 @@ try {
               <li class="<?= $allowed ? '' : 'is-off' ?>"><?= $allowed ? 'Incluye' : 'No incluye' ?> <?= clh_h($tool['name']) ?></li>
             <?php endforeach; ?>
           </ul>
-          <a class="btn" href="login.php?alta=1&amp;plan=<?= clh_h($level['slug']) ?>"><?= (int) $level['price_ars'] > 0 ? 'Elegir plan' : 'Crear cuenta' ?></a>
+          <?php if ((int) $level['price_ars'] <= 0): ?>
+            <a class="btn" href="<?= $user ? 'cuenta.php' : 'login.php?alta=1&amp;plan=mesa' ?>"><?= $user ? 'Tu plan sin cargo' : 'Crear cuenta' ?></a>
+          <?php elseif (!$user): ?>
+            <a class="btn" href="login.php?alta=1&amp;plan=<?= clh_h($level['slug']) ?>">Elegir plan</a>
+          <?php else: ?>
+            <form method="post" action="pagar.php">
+              <?php clh_csrf_field(); ?>
+              <input type="hidden" name="plan" value="<?= clh_h($level['slug']) ?>">
+              <button class="btn" type="submit">Elegir plan</button>
+            </form>
+          <?php endif; ?>
         </article>
       <?php endforeach; ?>
     </div>
-    <p class="narrow">Los créditos extra, fuera del plan, todavía no se venden. Cuando exista un cobro, el botón de arrepentimiento y el de baja quedan en el pie de todas las pantallas.</p>
+    <p class="narrow">Al volver del pago, la cuenta se actualiza una sola vez. Recargar esa página no vuelve a sumar los créditos. Los créditos extra, fuera del plan, todavía no se venden. El botón de arrepentimiento y el de baja quedan en el pie.</p>
   <?php endif; ?>
 </main>
 <?php

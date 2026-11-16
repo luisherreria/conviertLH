@@ -3,6 +3,7 @@
 require_once dirname(__DIR__) . '/src/bootstrap.php';
 require_once dirname(__DIR__) . '/src/Formats.php';
 require_once dirname(__DIR__) . '/src/Converter.php';
+require_once dirname(__DIR__) . '/src/Mockup.php';
 require_once dirname(__DIR__) . '/src/LocalRunner.php';
 require_once dirname(__DIR__) . '/src/ReplicateClient.php';
 require_once dirname(__DIR__) . '/src/Processor.php';

@@ -79,6 +79,7 @@ function clh_tool_stories()
             'lead' => 'Separa el motivo del fondo y entrega un PNG transparente, o lo apoya sobre un color plano.',
             'points' => [
                 'El control “Qué conservar” pide más o menos del aro, el texto y los trazos.',
+                'Hasta 3 imágenes, de 8 MB cada una.',
                 'Corre con BiRefNet en Replicate.',
                 'Cada imagen usa 2 créditos.',
             ],
@@ -92,6 +93,7 @@ function clh_tool_stories()
             'lead' => 'Agranda 2× o 4× reconstruyendo detalle, en vez de estirar los píxeles.',
             'points' => [
                 '2× usa 2 créditos. 4× usa 4.',
+                'Hasta 3 imágenes, de 8 MB cada una.',
                 'El lado resultante no puede pasar de 8000 px.',
                 'Corre con Real-ESRGAN en Replicate.',
             ],
@@ -102,13 +104,13 @@ function clh_tool_stories()
             'anchor' => 'convertir',
             'name' => 'Convertir',
             'kicker' => 'Local · sin créditos',
-            'lead' => 'Pasa un lote a PNG, JPG, WEBP, BMP o GIF, con calidad y un ZIP si hay varias.',
+            'lead' => 'Pasa una imagen a PNG, JPG, WEBP, BMP o GIF, con calidad.',
             'points' => [
                 'No usa créditos ni sale a Replicate.',
                 'TIFF, ICO y AVIF no están disponibles en este PHP.',
                 'El GIF se guarda en un solo cuadro.',
             ],
-            'body' => 'Elegís el formato y la calidad. Si subís varias imágenes, bajan juntas. El DPI de salida se puede fijar en PNG y JPG.',
+            'body' => 'Elegís el formato y la calidad. El DPI de salida se puede fijar en PNG y JPG.',
         ],
         [
             'slug' => 'crop',
@@ -118,7 +120,7 @@ function clh_tool_stories()
             'lead' => 'Saca el margen transparente o el color parejo de las esquinas.',
             'points' => [
                 'No usa créditos.',
-                'Varias imágenes bajan en un ZIP.',
+                'Una imagen, de hasta 8 MB.',
                 'Deja el motivo cerca del borde.',
             ],
             'body' => 'Después de quitar el fondo suele sobrar lienzo vacío. Recortar lo saca de una vez, sin medir a mano.',
@@ -128,7 +130,7 @@ function clh_tool_stories()
             'anchor' => 'espejar',
             'name' => 'Espejar',
             'kicker' => 'Local · sin créditos',
-            'lead' => 'Voltea el lote en horizontal, en vertical o en ambos sentidos.',
+            'lead' => 'Voltea una imagen en horizontal, en vertical o en ambos sentidos.',
             'points' => [
                 'No usa créditos ni sale a Replicate.',
                 'Horizontal invierte izquierda y derecha.',
@@ -149,6 +151,20 @@ function clh_tool_stories()
             ],
             'body' => 'Sale un PNG. El punto negro es la tinta que va a leer el RIP. En la base blanca, un tope de 85 deja aire en los planos para que el polvo no forme una lámina.',
         ],
+        [
+            'slug' => 'mockup',
+            'anchor' => 'mockup',
+            'name' => 'Crear Mockup',
+            'kicker' => 'Local · 1 crédito',
+            'lead' => 'Apoya el diseño en una remera, una taza, una gorra, una medalla, un set matero, un jarro térmico o una cartuchera.',
+            'points' => [
+                'Cada imagen usa 1 crédito.',
+                'La medalla deja elegir el color de la cinta.',
+                'No sale a Replicate.',
+                'Baja un JPG con el diseño en la zona de estampa.',
+            ],
+            'body' => 'Sirve para mostrarle al cliente cómo queda el archivo puesto en el producto, antes de imprimir.',
+        ],
     ];
 }
 
@@ -161,11 +177,11 @@ function clh_faqs()
         ],
         [
             'q' => '¿Qué gasta créditos?',
-            'a' => 'Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Convertir, recortar, espejar y semitono no gastan créditos.',
+            'a' => 'Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Crear mockup usa 1. Convertir, recortar, espejar y semitono no gastan créditos.',
         ],
         [
             'q' => '¿Los créditos ya se descuentan al procesar?',
-            'a' => 'La cuenta ya guarda el saldo y el permiso de cada herramienta. El descuento por trabajo, y el cobro con Mercado Pago, se conectan en el paso siguiente. Hoy el taller de esta PC sigue procesando con su configuración.',
+            'a' => 'La cuenta guarda el saldo y el permiso de cada herramienta. El cobro del plan ya pasa por Mercado Pago y carga los créditos del mes. El descuento en cada imagen todavía no está activo.',
         ],
         [
             'q' => '¿Guardan las imágenes?',
@@ -173,11 +189,11 @@ function clh_faqs()
         ],
         [
             'q' => '¿Puedo pagar en pesos?',
-            'a' => 'El precio de lista está en pesos argentinos. Mercado Pago todavía no está conectado: crear una cuenta no cobra y entra en el plan Mesa.',
+            'a' => 'Sí. Los planes pagos se cobran en pesos con Mercado Pago. Crear una cuenta no cobra y entra en Mesa hasta que el pago quede aprobado.',
         ],
         [
             'q' => '¿Todos los planes abren las mismas herramientas?',
-            'a' => 'No. Mesa incluye convertir, recortar, espejar y semitono. Puesto, Cuadrilla y Planta suman quitar fondo y escalar. Ese permiso está en la base, uno por herramienta, y se puede cambiar sin tocar el taller.',
+            'a' => 'No. Mesa incluye convertir, recortar, espejar, semitono y crear mockup. Puesto, Cuadrilla y Planta suman quitar fondo y escalar. Ese permiso está en la base, uno por herramienta, y se puede cambiar sin tocar el taller.',
         ],
     ];
 }
@@ -195,7 +211,8 @@ function clh_head($title)
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<meta name="robots" content="noindex">';
     echo '<title>' . clh_h($title) . '</title>';
-    echo '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'%3E%3Crect width=\'64\' height=\'64\' rx=\'14\' fill=\'%23ff7a1a\'/%3E%3Ctext x=\'32\' y=\'42\' text-anchor=\'middle\' font-family=\'Segoe UI\' font-size=\'26\' font-weight=\'700\' fill=\'%231a0d05\'%3ELH%3C/text%3E%3C/svg%3E">';
+    $icon = (int) @filemtime(CLH_ROOT . '/assets/favicon.png');
+    echo '<link rel="icon" href="assets/favicon.png?v=' . $icon . '" type="image/png">';
     echo '<link rel="stylesheet" href="assets/theme.css?v=' . $themeCss . '">';
     echo '<link rel="stylesheet" href="assets/site.css?v=' . $siteCss . '">';
     echo '</head><body data-theme="' . clh_h($theme) . '">';
@@ -219,7 +236,7 @@ function clh_nav($active)
     ];
 
     echo '<header class="bar"><div class="bar-in">';
-    echo '<a class="logo" href="index.php"><span class="mark">LH</span><span><strong>ConvertLH</strong><small>Taller de imágenes</small></span></a>';
+    echo '<a class="logo" href="index.php"><img src="assets/mark.png" alt="" width="36" height="40"><span><strong>SubliEdit</strong><small>Taller de imágenes</small></span></a>';
     echo '<nav class="links" aria-label="Secciones">';
     foreach ($items as $key => $item) {
         $class = $key === $active ? ' class="is-on"' : '';
@@ -234,6 +251,14 @@ function clh_nav($active)
     }
     echo '</div>';
     if ($user) {
+        $unread = clh_notice_unread((int) $user['id']);
+        $bellLabel = $unread > 0 ? 'Avisos, ' . $unread . ' sin leer' : 'Avisos';
+        echo '<a class="bell" href="avisos.php" aria-label="' . clh_h($bellLabel) . '">';
+        echo '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a5 5 0 0 0-5 5v2.1c0 .7-.2 1.4-.7 2L4.6 14.4A1.6 1.6 0 0 0 5.8 17h12.4a1.6 1.6 0 0 0 1.2-2.6l-1.7-2.3c-.5-.6-.7-1.3-.7-2V8a5 5 0 0 0-5-5zm0 18a2.4 2.4 0 0 0 2.3-1.7H9.7A2.4 2.4 0 0 0 12 21z"/></svg>';
+        if ($unread > 0) {
+            echo '<span class="bell-count">' . ($unread > 9 ? '9+' : (string) $unread) . '</span>';
+        }
+        echo '</a>';
         echo '<a class="who" href="cuenta.php"><span>' . clh_h($user['name']) . '</span><small>' . (int) $user['credits'] . ' créditos</small></a>';
         echo '<a class="btn-line" href="salir.php">Salir</a>';
     } else {
@@ -263,12 +288,12 @@ function clh_legal_nav()
 function clh_footer()
 {
     echo '<footer class="colophon"><div class="colophon-in">';
-    echo '<div><strong>ConvertLH</strong><p>Seis herramientas para dejar imágenes listas. Fondo y escala con IA. El resto, en esta máquina.</p></div>';
+    echo '<div><strong>SubliEdit</strong><p>Siete herramientas para dejar imágenes listas. Fondo y escala con IA. El resto, en esta máquina.</p></div>';
     echo '<div><span>Mapa</span><a href="herramientas.php">Herramientas</a><a href="precios.php">Precios</a><a href="ayuda.php">Ayuda</a><a href="taller.php">Abrir taller</a></div>';
     echo '<div><span>Cuenta y ley</span>';
     clh_legal_nav();
     echo '</div></div>';
-    echo '<p class="made">ConvertLH · precios de lista en pesos · el cobro con Mercado Pago todavía no está conectado</p>';
+    echo '<p class="made">SubliEdit · planes en pesos · el cobro pasa por Mercado Pago</p>';
     echo '</footer>';
 }
 

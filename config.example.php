@@ -7,9 +7,13 @@
 return [
     'replicate_token' => '',
     'max_upload_bytes' => 8 * 1024 * 1024,
-    'max_files' => 8,
+    'max_files' => 1,
+    'ai_max_files' => 3,
     'max_pixels' => 16000000,
     'poll_timeout_seconds' => 180,
+    'mercadopago' => [
+        'access_token' => '',
+    ],
     'db' => [
         'host' => '127.0.0.1',
         'name' => 'convertlh',

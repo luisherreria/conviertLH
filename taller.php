@@ -3,6 +3,7 @@
 require_once __DIR__ . '/src/bootstrap.php';
 require_once __DIR__ . '/src/Site.php';
 require_once __DIR__ . '/src/Formats.php';
+require_once __DIR__ . '/src/Mockup.php';
 require_once __DIR__ . '/src/LocalRunner.php';
 
 clh_site_boot();
@@ -12,6 +13,7 @@ $formats = Formats::catalog();
 $aiRemote = trim((string) ($config['replicate_token'] ?? '')) !== '';
 $aiReady = $aiRemote || LocalRunner::isReady();
 $maxFiles = max(1, (int) $config['max_files']);
+$aiMaxFiles = max(1, (int) ($config['ai_max_files'] ?? 3));
 $maxBytes = max(1024, (int) $config['max_upload_bytes']);
 $maxMb = (int) round($maxBytes / (1024 * 1024));
 
@@ -32,6 +34,7 @@ $client = [
     'aiReady' => $aiReady,
     'aiRemote' => $aiRemote,
     'maxFiles' => $maxFiles,
+    'aiMaxFiles' => $aiMaxFiles,
     'maxBytes' => $maxBytes,
 ];
 $cssVersion = (int) @filemtime(__DIR__ . '/assets/app.css');
@@ -46,9 +49,9 @@ $account = clh_user();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Taller — ConvertLH</title>
+  <title>Taller — SubliEdit</title>
   <base href="<?= htmlspecialchars($baseHref, ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff7a1a'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Segoe UI' font-size='26' font-weight='700' fill='%231a0d05'%3ELH%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="assets/favicon.png?v=<?= (int) @filemtime(__DIR__ . '/assets/favicon.png') ?>" type="image/png">
   <link rel="stylesheet" href="assets/theme.css?v=<?= $themeCss ?>">
   <link rel="stylesheet" href="assets/site.css?v=<?= $siteCss ?>">
   <link rel="stylesheet" href="assets/app.css?v=<?= $cssVersion ?>">
@@ -58,9 +61,9 @@ $account = clh_user();
   <div class="app">
     <header class="top">
       <div class="brand">
-        <div class="mark" aria-hidden="true">LH</div>
+        <img class="mark" src="assets/mark.png" alt="" width="46" height="52">
         <div>
-          <h1>ConvertLH</h1>
+          <h1>SubliEdit</h1>
           <p>Quitar fondo, escalar y convertir</p>
         </div>
       </div>
@@ -88,11 +91,11 @@ $account = clh_user();
       </button>
       <button class="tool" type="button" data-tool="convert" role="tab" aria-pressed="false">
         <strong>Convertir</strong>
-        <span>Lote, calidad y ZIP. Sin costo de API.</span>
+        <span>Una imagen. Calidad y formato. Sin costo.</span>
       </button>
       <button class="tool" type="button" data-tool="crop" role="tab" aria-pressed="false">
         <strong>Recortar</strong>
-        <span>Lote y ZIP. Sin costo.</span>
+        <span>Una imagen. Sin costo.</span>
       </button>
       <button class="tool" type="button" data-tool="flip" role="tab" aria-pressed="false">
         <strong>Espejar</strong>
@@ -102,6 +105,10 @@ $account = clh_user();
         <strong>Semitono</strong>
         <span>Puntos para DTF. Sin costo.</span>
       </button>
+      <button class="tool" type="button" data-tool="mockup" role="tab" aria-pressed="false">
+        <strong>Crear Mockup</strong>
+        <span>1 crédito. Remera, taza, gorra, medalla y más.</span>
+      </button>
     </div>
 
     <div class="layout">
@@ -110,7 +117,7 @@ $account = clh_user();
         <label class="drop" id="drop">
           <input id="file-input" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
           <strong>Soltá imágenes o hacé clic para elegirlas</strong>
-          <span>PNG, JPG, WEBP, GIF o BMP · hasta <?= (int) $maxFiles ?> archivos · <?= (int) $maxMb ?> MB cada uno</span>
+          <span id="drop-note">PNG, JPG, WEBP, GIF o BMP · hasta <?= (int) $aiMaxFiles ?> archivos · <?= (int) $maxMb ?> MB cada uno</span>
         </label>
         <ul class="queue" id="queue"></ul>
 
@@ -169,7 +176,7 @@ $account = clh_user();
               <label><input type="radio" name="flip" value="vertical"> Vertical</label>
               <label><input type="radio" name="flip" value="both"> Ambos</label>
             </div>
-            <p class="hint">Voltea el lote en esta PC. Varias imágenes bajan en un ZIP. No usa Replicate.</p>
+            <p class="hint">Voltea una imagen en esta PC. No usa Replicate.</p>
           </div>
 
           <div id="panel-halftone" class="field" hidden>
@@ -193,8 +200,40 @@ $account = clh_user();
             <p class="hint">La foto pasa los tonos a puntos. La base blanca usa la opacidad, para la capa de blanco del DTF. El tope en 85 deja aire en los planos. Sale PNG a 45°. No usa Replicate.</p>
           </div>
 
+          <div id="panel-mockup" class="field" hidden>
+            <label id="mockup-label">Plantilla</label>
+            <div class="mockup-pick">
+              <?php $mockupOptions = Mockup::options(); $mockupFirst = key($mockupOptions); ?>
+              <input type="hidden" id="mockup" name="mockup" value="<?= htmlspecialchars($mockupFirst, ENT_QUOTES, 'UTF-8') ?>">
+              <button class="mockup-current" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="mockup-label">
+                <span><?= htmlspecialchars($mockupOptions[$mockupFirst]['label'], ENT_QUOTES, 'UTF-8') ?></span>
+              </button>
+              <div class="mockup-menu" hidden>
+                <div class="mockup-options" role="listbox" aria-labelledby="mockup-label">
+                  <?php foreach ($mockupOptions as $id => $option): ?>
+                    <button type="button" role="option" data-value="<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>" data-src="assets/mockups/<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>.jpg"<?= $id === $mockupFirst ? ' aria-selected="true"' : '' ?>><?= htmlspecialchars($option['label'], ENT_QUOTES, 'UTF-8') ?></button>
+                  <?php endforeach; ?>
+                </div>
+                <img class="mockup-preview" alt="" src="assets/mockups/<?= htmlspecialchars($mockupFirst, ENT_QUOTES, 'UTF-8') ?>.jpg">
+              </div>
+            </div>
+            <p class="hint">El diseño se apoya en la zona de estampa y baja un JPG. En la medalla, la cinta usa el color elegido. Vale 1 crédito. El saldo de la cuenta todavía no se descuenta solo. No usa Replicate.</p>
+            <div id="panel-ribbon" hidden>
+              <span id="ribbon-label">Cinta</span>
+              <div class="ribbon-swatches" role="radiogroup" aria-labelledby="ribbon-label">
+                <?php foreach (Mockup::ribbons() as $ribbonId => $ribbon): ?>
+                  <label class="ribbon-swatch">
+                    <input type="radio" name="ribbon" value="<?= htmlspecialchars($ribbonId, ENT_QUOTES, 'UTF-8') ?>"<?= $ribbonId === 'azul' ? ' checked' : '' ?>>
+                    <span style="background: <?= htmlspecialchars($ribbon['css'], ENT_QUOTES, 'UTF-8') ?>"></span>
+                    <small><?= htmlspecialchars($ribbon['label'], ENT_QUOTES, 'UTF-8') ?></small>
+                  </label>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+
           <div id="panel-crop-note" class="field" hidden>
-            <p class="hint">Saca el margen transparente o el color parejo de las esquinas. Varias imágenes bajan en un ZIP. No usa Replicate.</p>
+            <p class="hint">Saca el margen transparente o el color parejo de las esquinas. Una imagen. No usa Replicate.</p>
           </div>
 
           <label class="check" id="panel-crop-option">
@@ -220,7 +259,7 @@ $account = clh_user();
           <button class="primary" id="process-btn" type="submit">Procesar</button>
           <button class="secondary" id="preset" type="button">Preset producción</button>
         </div>
-        <p class="hint" id="ai-hint"><?= $aiRemote ? 'Usa el crédito de Replicate. Suele tardar unos segundos por imagen.' : 'Corre en esta PC, sin costo por imagen. La primera vez también carga el modelo.' ?></p>
+        <p class="hint" id="ai-hint"><?= $aiRemote ? 'Usa el crédito de Replicate. Si hay más de una, se procesan de a una para no cortar por tiempo.' : 'Corre en esta PC, sin costo por imagen. La primera vez también carga el modelo.' ?></p>
         <p id="feedback" role="status"></p>
       </form>
 

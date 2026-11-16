@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/Notices.php';
 
 function clh_user()
 {
@@ -15,8 +16,10 @@ function clh_user()
     }
 
     try {
+        clh_install_signals();
         $st = clh_db()->prepare(
-            'SELECT u.id, u.name, u.email, u.level_id, u.credits, u.theme, u.status, u.created_at,
+            'SELECT u.id, u.name, u.email, u.level_id, u.credits, u.theme, u.status, u.is_admin,
+                    u.signup_ip, u.device_id, u.created_at,
                     l.slug AS level_slug, l.name AS level_name, l.monthly_credits
              FROM users u
              INNER JOIN levels l ON l.id = u.level_id
@@ -34,6 +37,13 @@ function clh_user()
         unset($_SESSION['user_id']);
         $user = null;
         return null;
+    }
+
+    $ip = clh_client_ip();
+    $device = clh_device_id();
+    if (($ip !== '' && $row['signup_ip'] !== $ip) || ($device !== '' && $row['device_id'] !== $device)) {
+        $save = clh_db()->prepare('UPDATE users SET signup_ip = ?, device_id = ? WHERE id = ?');
+        $save->execute([$ip !== '' ? $ip : $row['signup_ip'], $device, (int) $row['id']]);
     }
 
     $user = $row;
@@ -54,6 +64,9 @@ function clh_login($email, $password)
     $row = $st->fetch();
     if (!$row || !is_string($row['password_hash']) || !password_verify((string) $password, $row['password_hash'])) {
         throw new UserException('Email o contraseña incorrectos.');
+    }
+    if ($row['status'] === 'pending') {
+        throw new UserException('Tu cuenta está en revisión. Cuando la activemos, vas a poder entrar.');
     }
     if ($row['status'] !== 'active') {
         throw new UserException('Esta cuenta está dada de baja.');
@@ -82,16 +95,21 @@ function clh_register($name, $email, $password, $theme)
     }
 
     $pdo = clh_db();
+    clh_install_signals();
     $level = $pdo->query("SELECT id FROM levels WHERE slug = 'mesa' LIMIT 1")->fetch();
     if (!$level) {
         throw new UserException('La base no tiene el plan Mesa.');
     }
 
+    $ip = clh_client_ip();
+    $device = clh_device_id();
+    $hold = clh_signup_hold($device, $ip);
+    $status = $hold ? 'pending' : 'active';
     $now = date('Y-m-d H:i:s');
     try {
         $st = $pdo->prepare(
-            'INSERT INTO users (name, email, password_hash, level_id, credits, theme, status, created_at, updated_at)
-             VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)'
+            'INSERT INTO users (name, email, password_hash, level_id, credits, theme, status, signup_ip, device_id, created_at, updated_at)
+             VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)'
         );
         $st->execute([
             $name,
@@ -99,7 +117,9 @@ function clh_register($name, $email, $password, $theme)
             password_hash((string) $password, PASSWORD_DEFAULT),
             (int) $level['id'],
             $theme,
-            'active',
+            $status,
+            $ip,
+            $device,
             $now,
             $now,
         ]);
@@ -111,7 +131,21 @@ function clh_register($name, $email, $password, $theme)
         throw new UserException('No se pudo crear la cuenta.');
     }
 
-    clh_login_id((int) $pdo->lastInsertId());
+    $id = (int) $pdo->lastInsertId();
+    if (!$hold) {
+        $admin = $pdo->query('SELECT id FROM users WHERE is_admin = 1 LIMIT 1')->fetch();
+        if (!$admin) {
+            $pdo->prepare('UPDATE users SET is_admin = 1 WHERE id = ?')->execute([$id]);
+        }
+        clh_login_id($id);
+        return 'active';
+    }
+
+    $body = $name . ' (' . $email . ') pidió otra cuenta gratis. Ya está ' . $hold['who'] . ' con ' . $hold['why'] . '.';
+    foreach (clh_admin_ids() as $adminId) {
+        clh_notice_add($adminId, 'review', $body, $id);
+    }
+    return 'pending';
 }
 
 function clh_logout()

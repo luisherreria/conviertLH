@@ -23,8 +23,8 @@ class Processor
     private function run(array $post, array $files, $job)
     {
         $tool = isset($post['tool']) ? (string) $post['tool'] : '';
-        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone'], true)) {
-            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar, espejar o semitono.');
+        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone', 'mockup'], true)) {
+            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar, espejar, semitono o mockup.');
         }
 
         $scale = isset($post['scale']) ? (int) $post['scale'] : 2;
@@ -87,13 +87,26 @@ class Processor
             throw new UserException('Elegí punto negro o blanco.');
         }
 
-        $uploads = $this->normalizeFiles($files);
-        $maxFiles = max(1, (int) $this->config['max_files']);
-        if (count($uploads) > $maxFiles) {
-            throw new UserException('Podés subir hasta ' . $maxFiles . ' imágenes por vez.');
+        $mockup = isset($post['mockup']) ? (string) $post['mockup'] : 'remera-frente';
+        if ($tool === 'mockup' && !isset(Mockup::options()[$mockup])) {
+            throw new UserException('Elegí una plantilla.');
+        }
+        $ribbon = isset($post['ribbon']) ? (string) $post['ribbon'] : 'azul';
+        if ($tool === 'mockup' && $mockup === 'medalla' && !isset(Mockup::ribbons()[$ribbon])) {
+            throw new UserException('Elegí un color de cinta.');
         }
 
-        if (!in_array($tool, ['convert', 'crop', 'flip', 'halftone'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
+        $uploads = $this->normalizeFiles($files);
+        $maxFiles = $this->fileCap($tool);
+        if (count($uploads) > $maxFiles) {
+            throw new UserException($maxFiles === 1
+                ? ($tool === 'mockup'
+                    ? 'Crear mockup usa una sola imagen.'
+                    : 'Esta herramienta usa una sola imagen.')
+                : 'Podés subir hasta ' . $maxFiles . ' imágenes por vez.');
+        }
+
+        if (!in_array($tool, ['convert', 'crop', 'flip', 'halftone', 'mockup'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
             throw new UserException('Falta el token de Replicate. Convertir formatos sigue disponible.');
         }
 
@@ -129,6 +142,8 @@ class Processor
                     $lpi,
                     $halftoneCap,
                     $halftoneInk,
+                    $mockup,
+                    $ribbon,
                     $notices
                 );
             } catch (UserException $e) {
@@ -170,6 +185,11 @@ class Processor
             ];
         }
 
+        if (!empty($_SESSION['user_id'])) {
+            require_once __DIR__ . '/Notices.php';
+            clh_log_activity((int) $_SESSION['user_id'], $tool, $mockup, count($public), $scale);
+        }
+
         return [
             'ok' => true,
             'files' => $filesOut,
@@ -200,8 +220,13 @@ class Processor
         return trim((string) ($this->config['replicate_token'] ?? '')) !== '';
     }
 
-    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, $halftone, $lpi, $halftoneCap, $halftoneInk, array &$notices)
+    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, $halftone, $lpi, $halftoneCap, $halftoneInk, $mockup, $ribbon, array &$notices)
     {
+        if ($tool === 'mockup') {
+            $image = Mockup::place($path, $mockup, $ribbon);
+            return $this->finishLocal($image, 'jpg', 90, false, $color, false, $dpi, $originalName, $index, $notices);
+        }
+
         if ($tool === 'halftone') {
             $screenDpi = $dpi >= 150 ? $dpi : 300;
             if ($screenDpi !== $dpi) {
@@ -386,6 +411,17 @@ class Processor
         }
     }
 
+    private function fileCap($tool)
+    {
+        if ($tool === 'mockup') {
+            return 1;
+        }
+        if ($tool === 'remove_bg' || $tool === 'upscale') {
+            return max(1, (int) $this->config['ai_max_files']);
+        }
+        return 1;
+    }
+
     private function normalizeFiles(array $files)
     {
         if (!isset($files['files']) || !is_array($files['files'])) {
@@ -488,7 +524,7 @@ class Processor
         }
 
         return [
-            'name' => 'convertlh-resultado.zip',
+            'name' => 'subliedit-resultado.zip',
             'mime' => 'application/zip',
             'base64' => base64_encode($binary),
         ];

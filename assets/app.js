@@ -8,7 +8,7 @@
   var submitBtn = document.getElementById('process-btn');
   var quality = document.getElementById('quality');
   var qualityOut = document.getElementById('quality-out');
-  var limits = window.APP || { maxFiles: 8, maxBytes: 8 * 1024 * 1024 };
+  var limits = window.APP || { maxFiles: 1, aiMaxFiles: 3, maxBytes: 8 * 1024 * 1024 };
   var queue = [];
   var resultUrls = [];
   var tool = 'remove_bg';
@@ -76,11 +76,27 @@
     });
   }
 
+  function fileLimit() {
+    if (tool === 'remove_bg' || tool === 'upscale') return limits.aiMaxFiles || 3;
+    return 1;
+  }
+
+  function singleFileMessage() {
+    return tool === 'mockup'
+      ? 'Crear mockup usa una sola imagen.'
+      : 'Esta herramienta usa una sola imagen.';
+  }
+
   function addFiles(list) {
     var rejected = [];
+    if (fileLimit() === 1 && list.length) {
+      queue.forEach(function (item) { URL.revokeObjectURL(item.url); });
+      queue = [];
+      list = [list[0]];
+    }
     Array.prototype.forEach.call(list, function (file) {
-      if (queue.length >= limits.maxFiles) {
-        rejected.push('Máximo ' + limits.maxFiles + ' imágenes por vez.');
+      if (queue.length >= fileLimit()) {
+        rejected.push(fileLimit() === 1 ? singleFileMessage() : 'Máximo ' + fileLimit() + ' imágenes por vez.');
         return;
       }
       if (!accepted(file)) {
@@ -105,19 +121,42 @@
     Array.prototype.forEach.call(document.querySelectorAll('.tool'), function (button) {
       button.setAttribute('aria-pressed', button.getAttribute('data-tool') === next ? 'true' : 'false');
     });
-    var local = next === 'convert' || next === 'crop' || next === 'flip' || next === 'halftone';
+    var local = next === 'convert' || next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
     document.getElementById('panel-keep').hidden = next !== 'remove_bg';
     document.getElementById('panel-scale').hidden = next !== 'upscale';
     document.getElementById('panel-format').hidden = next !== 'convert';
     document.getElementById('panel-bg-mode').hidden = next !== 'remove_bg';
-    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip' || next === 'halftone';
+    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
     document.getElementById('panel-flip').hidden = next !== 'flip';
     document.getElementById('panel-halftone').hidden = next !== 'halftone';
+    document.getElementById('panel-mockup').hidden = next !== 'mockup';
+    syncRibbon();
     document.getElementById('panel-crop-note').hidden = next !== 'crop';
-    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip' || next === 'halftone';
-    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip' || next === 'halftone';
+    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
+    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
     document.getElementById('fill-hint').hidden = next !== 'convert';
     document.getElementById('ai-hint').hidden = local;
+    var input = document.getElementById('file-input');
+    var note = document.getElementById('drop-note');
+    var mb = Math.round(limits.maxBytes / (1024 * 1024));
+    var cap = fileLimit();
+    if (cap === 1) {
+      input.removeAttribute('multiple');
+      note.textContent = 'PNG, JPG, WEBP, GIF o BMP · una imagen · ' + mb + ' MB';
+    } else {
+      input.setAttribute('multiple', 'multiple');
+      note.textContent = 'PNG, JPG, WEBP, GIF o BMP · hasta ' + cap + ' archivos · ' + mb + ' MB cada uno';
+    }
+    if (queue.length > cap) {
+      queue.splice(cap).forEach(function (item) { URL.revokeObjectURL(item.url); });
+      renderQueue();
+      updateButton();
+      showError(cap === 1
+        ? singleFileMessage() + ' Saqué las demás.'
+        : 'Esta herramienta acepta hasta ' + cap + ' imágenes, de ' + mb + ' MB cada una. Saqué las que sobraban.');
+    } else {
+      clearError();
+    }
     syncColor();
   }
 
@@ -191,7 +230,10 @@
     }
 
     if (data.zip) {
-      var zipUrl = b64ToUrl(data.zip.base64, data.zip.mime);
+      var zipUrl = data.zip.blob
+        ? URL.createObjectURL(data.zip.blob)
+        : b64ToUrl(data.zip.base64, data.zip.mime);
+      if (data.zip.blob) resultUrls.push(zipUrl);
       var zipBtn = el('button', 'secondary', 'Descargar ZIP');
       zipBtn.type = 'button';
       zipBtn.addEventListener('click', function () {
@@ -304,13 +346,7 @@
     addFiles(event.dataTransfer.files);
   });
 
-  form.addEventListener('submit', function (event) {
-    event.preventDefault();
-    if (!queue.length) {
-      showError('Subí al menos una imagen.');
-      return;
-    }
-
+  function jobData(item) {
     var data = new FormData();
     data.set('tool', tool);
     data.set('scale', document.querySelector('input[name="scale"]:checked').value);
@@ -330,55 +366,284 @@
     data.set('halftone_cap', document.getElementById('halftone-cap').value);
     var ink = document.querySelector('input[name="halftone_ink"]:checked');
     data.set('halftone_ink', ink ? ink.value : 'black');
-    queue.forEach(function (item) { data.append('files[]', item.file, item.file.name); });
+    data.set('mockup', document.getElementById('mockup').value);
+    var ribbon = document.querySelector('input[name="ribbon"]:checked');
+    data.set('ribbon', ribbon ? ribbon.value : 'azul');
+    if (item) data.append('files[]', item.file, item.file.name);
+    else queue.forEach(function (entry) { data.append('files[]', entry.file, entry.file.name); });
+    return data;
+  }
+
+  function readPayload(response) {
+    return response.text().then(function (text) {
+      var payload;
+      try { payload = JSON.parse(text); }
+      catch (err) { throw new Error('El servidor no respondió bien.'); }
+      if (!payload.ok) throw new Error(payload.error || 'No se pudo procesar.');
+      return payload;
+    });
+  }
+
+  var CRC_TABLE = (function () {
+    var table = new Uint32Array(256);
+    var n;
+    var k;
+    var c;
+    for (n = 0; n < 256; n++) {
+      c = n;
+      for (k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      table[n] = c >>> 0;
+    }
+    return table;
+  }());
+
+  function crc32(bytes) {
+    var c = 0xffffffff;
+    var i;
+    for (i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+
+  function zipName(name, used) {
+    var base = name || 'imagen.png';
+    if (!used[base]) {
+      used[base] = true;
+      return base;
+    }
+    var dot = base.lastIndexOf('.');
+    var stem = dot > 0 ? base.slice(0, dot) : base;
+    var ext = dot > 0 ? base.slice(dot) : '';
+    var n = 2;
+    var next = stem + '-' + n + ext;
+    while (used[next]) {
+      n += 1;
+      next = stem + '-' + n + ext;
+    }
+    used[next] = true;
+    return next;
+  }
+
+  function storeZip(files) {
+    var parts = [];
+    var central = [];
+    var offset = 0;
+    var used = {};
+    files.forEach(function (file) {
+      var raw = atob(file.base64);
+      var data = new Uint8Array(raw.length);
+      var i;
+      for (i = 0; i < raw.length; i++) data[i] = raw.charCodeAt(i) & 0xff;
+      var nameBytes = new TextEncoder().encode(zipName(file.name, used));
+      var crc = crc32(data);
+      var local = new Uint8Array(30 + nameBytes.length);
+      var view = new DataView(local.buffer);
+      view.setUint32(0, 0x04034b50, true);
+      view.setUint16(4, 20, true);
+      view.setUint16(6, 0x0800, true);
+      view.setUint16(8, 0, true);
+      view.setUint16(10, 0, true);
+      view.setUint16(12, 0, true);
+      view.setUint32(14, crc, true);
+      view.setUint32(18, data.length, true);
+      view.setUint32(22, data.length, true);
+      view.setUint16(26, nameBytes.length, true);
+      view.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+      parts.push(local, data);
+      var cen = new Uint8Array(46 + nameBytes.length);
+      var cv = new DataView(cen.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);
+      cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true);
+      cv.setUint16(10, 0, true);
+      cv.setUint16(12, 0, true);
+      cv.setUint16(14, 0, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, data.length, true);
+      cv.setUint32(24, data.length, true);
+      cv.setUint16(28, nameBytes.length, true);
+      cv.setUint16(30, 0, true);
+      cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true);
+      cv.setUint16(36, 0, true);
+      cv.setUint32(38, 0, true);
+      cv.setUint32(42, offset, true);
+      cen.set(nameBytes, 46);
+      central.push(cen);
+      offset += local.length + data.length;
+    });
+    var centralSize = 0;
+    central.forEach(function (part) { centralSize += part.length; });
+    var end = new Uint8Array(22);
+    var ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(4, 0, true);
+    ev.setUint16(6, 0, true);
+    ev.setUint16(8, files.length, true);
+    ev.setUint16(10, files.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, offset, true);
+    ev.setUint16(20, 0, true);
+    return new Blob(parts.concat(central, [end]), { type: 'application/zip' });
+  }
+
+  function busyLine(index, total) {
+    if (tool === 'convert') return 'Convirtiendo en el servidor…';
+    if (tool === 'crop') return 'Recortando en el servidor…';
+    if (tool === 'flip') return 'Espejando en el servidor…';
+    if (tool === 'halftone') return 'Armando el semitono en el servidor…';
+    if (tool === 'mockup') return 'Armando el mockup en el servidor…';
+    var step = total > 1 ? 'Imagen ' + (index + 1) + ' de ' + total + '. ' : '';
+    if (tool === 'remove_bg') {
+      return limits.aiRemote
+        ? step + 'Quitando el fondo en Replicate…'
+        : step + 'Quitando el fondo en esta PC…';
+    }
+    return limits.aiRemote
+      ? step + 'Escalando en Replicate…'
+      : step + 'Escalando en esta PC…';
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (!queue.length) {
+      showError('Subí al menos una imagen.');
+      return;
+    }
 
     var submitted = queue.slice();
+    var split = (tool === 'remove_bg' || tool === 'upscale') && submitted.length > 1;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Procesando…';
     feedback.style.color = 'var(--muted)';
-    var busyText = {
-      convert: 'Convirtiendo en el servidor…',
-      crop: 'Recortando en el servidor…',
-      flip: 'Espejando en el servidor…',
-      halftone: 'Armando el semitono en el servidor…'
-    };
-    if (busyText[tool]) {
-      feedback.textContent = busyText[tool];
-    } else if (limits.aiRemote) {
-      feedback.textContent = tool === 'remove_bg'
-        ? 'Quitando el fondo en Replicate. Suele tardar unos segundos.'
-        : 'Escalando en Replicate. Suele tardar unos segundos.';
-    } else {
-      feedback.textContent = tool === 'remove_bg'
-        ? 'Quitando el fondo en esta PC. Puede tardar unos minutos.'
-        : 'Escalando en esta PC. Puede tardar un momento.';
-    }
+    feedback.textContent = busyLine(0, submitted.length);
 
-    fetch('api/process.php', { method: 'POST', body: data })
-      .then(function (response) {
-        return response.text().then(function (text) {
-          var payload;
-          try { payload = JSON.parse(text); }
-          catch (err) { throw new Error('El servidor no respondió bien.'); }
-          if (!payload.ok) throw new Error(payload.error || 'No se pudo procesar.');
-          return payload;
+    var task;
+    if (!split) {
+      task = fetch('api/process.php', { method: 'POST', body: jobData(null) })
+        .then(readPayload)
+        .then(function (payload) {
+          feedback.textContent = '';
+          renderResults(payload, submitted);
         });
-      })
-      .then(function (payload) {
+    } else {
+      var collected = { files: [], notices: [], errors: [] };
+      var chain = Promise.resolve();
+      submitted.forEach(function (item, index) {
+        chain = chain.then(function () {
+          feedback.textContent = busyLine(index, submitted.length);
+          return fetch('api/process.php', { method: 'POST', body: jobData(item) })
+            .then(readPayload)
+            .then(function (payload) {
+              payload.files.forEach(function (file) {
+                file.source_index = index;
+                collected.files.push(file);
+              });
+              (payload.notices || []).forEach(function (text) {
+                if (collected.notices.indexOf(text) === -1) collected.notices.push(text);
+              });
+            })
+            .catch(function (err) {
+              collected.errors.push((item.file.name || 'Imagen') + ': ' + (err.message || 'No se pudo procesar.'));
+            });
+        });
+      });
+      task = chain.then(function () {
+        if (!collected.files.length) {
+          throw new Error(collected.errors.join(' ') || 'No se pudo procesar.');
+        }
+        if (collected.errors.length) {
+          collected.notices.push('Algunas imágenes no se procesaron: ' + collected.errors.join(' '));
+        }
+        var payload = { files: collected.files, notices: collected.notices };
+        if (collected.files.length > 1) {
+          payload.zip = {
+            name: 'subliedit-resultado.zip',
+            mime: 'application/zip',
+            blob: storeZip(collected.files)
+          };
+        }
         feedback.textContent = '';
         renderResults(payload, submitted);
-      })
-      .catch(function (err) {
-        feedback.style.color = '';
-        showError(err.message || 'No se pudo hablar con el servidor.');
-      })
-      .then(function () {
-        updateButton();
       });
+    }
+
+    task.catch(function (err) {
+      feedback.style.color = '';
+      showError(err.message || 'No se pudo hablar con el servidor.');
+    }).then(function () {
+      updateButton();
+    });
   });
 
+  function syncRibbon() {
+    var panel = document.getElementById('panel-ribbon');
+    if (!panel) return;
+    var current = document.getElementById('mockup');
+    panel.hidden = tool !== 'mockup' || !current || current.value !== 'medalla';
+  }
+
+  var mockupPick = document.querySelector('.mockup-pick');
+  if (mockupPick) {
+    var mockupValue = document.getElementById('mockup');
+    var mockupButton = mockupPick.querySelector('.mockup-current');
+    var mockupMenu = mockupPick.querySelector('.mockup-menu');
+    var mockupPreview = mockupPick.querySelector('.mockup-preview');
+    var mockupChoices = mockupPick.querySelectorAll('.mockup-options button');
+
+    function showMockup(choice) {
+      mockupChoices.forEach(function (item) { item.classList.remove('is-on'); });
+      choice.classList.add('is-on');
+      mockupPreview.src = choice.getAttribute('data-src');
+      mockupPreview.alt = choice.textContent;
+    }
+
+    function closeMockup() {
+      mockupMenu.hidden = true;
+      mockupButton.setAttribute('aria-expanded', 'false');
+    }
+
+    mockupButton.addEventListener('click', function () {
+      var open = mockupMenu.hidden;
+      mockupMenu.hidden = !open;
+      mockupButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        var current = mockupPick.querySelector('[data-value="' + mockupValue.value + '"]');
+        if (current) showMockup(current);
+      }
+    });
+
+    mockupChoices.forEach(function (choice) {
+      choice.addEventListener('mouseenter', function () { showMockup(choice); });
+      choice.addEventListener('focus', function () { showMockup(choice); });
+      choice.addEventListener('click', function () {
+        mockupValue.value = choice.getAttribute('data-value');
+        mockupButton.querySelector('span').textContent = choice.textContent;
+        mockupChoices.forEach(function (item) {
+          item.setAttribute('aria-selected', item === choice ? 'true' : 'false');
+        });
+        syncRibbon();
+        closeMockup();
+      });
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!mockupPick.contains(event.target)) closeMockup();
+    });
+
+    mockupButton.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        mockupMenu.hidden = false;
+        mockupButton.setAttribute('aria-expanded', 'true');
+        mockupChoices[0].focus();
+      }
+    });
+  }
+
   var requestedTool = new URLSearchParams(window.location.search).get('tool');
-  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone'].indexOf(requestedTool) === -1) {
+  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone', 'mockup'].indexOf(requestedTool) === -1) {
     requestedTool = 'remove_bg';
   }
   setTool(requestedTool);

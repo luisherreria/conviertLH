@@ -16,9 +16,13 @@ function clh_config()
     $defaults = [
         'replicate_token' => '',
         'max_upload_bytes' => 8 * 1024 * 1024,
-        'max_files' => 8,
+        'max_files' => 1,
+        'ai_max_files' => 3,
         'max_pixels' => 16000000,
         'poll_timeout_seconds' => 100,
+        'mercadopago' => [
+            'access_token' => '',
+        ],
         'db' => [
             'host' => '127.0.0.1',
             'name' => 'convertlh',
@@ -115,6 +119,25 @@ function clh_h($value)
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
+function clh_device_id()
+{
+    $current = isset($_COOKIE['clh_device']) ? (string) $_COOKIE['clh_device'] : '';
+    if (!preg_match('/^[a-f0-9]{32}$/', $current)) {
+        $current = bin2hex(random_bytes(16));
+        if (PHP_SAPI !== 'cli' && !headers_sent()) {
+            setcookie('clh_device', $current, [
+                'expires' => time() + 3600 * 24 * 400,
+                'path' => clh_cookie_path(),
+                'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+        $_COOKIE['clh_device'] = $current;
+    }
+    return $current;
+}
+
 if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -124,4 +147,5 @@ if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
         'samesite' => 'Lax',
     ]);
     session_start();
+    clh_device_id();
 }

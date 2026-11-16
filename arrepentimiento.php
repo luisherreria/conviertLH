@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-clh_head('Botón de arrepentimiento — ConvertLH');
+clh_head('Botón de arrepentimiento — SubliEdit');
 clh_nav('');
 ?>
 <main class="site" id="contenido">
@@ -65,7 +65,7 @@ clh_nav('');
     <section class="prose">
       <p>El artículo 34 de la Ley 24.240 reconoce el derecho a revocar la aceptación de una contratación hecha por medios electrónicos, dentro de los 10 días corridos desde la compra o desde que recibís el servicio, lo que ocurra último.</p>
       <p>Este botón es ese canal. No hace falta explicar un defecto del producto: alcanza con arrepentirte a tiempo.</p>
-      <p>ConvertLH todavía no cobra. Si igual querés dejar el pedido asentado, lo guardamos y lo revisamos cuando exista una operación.</p>
+      <p>SubliEdit todavía no cobra. Si igual querés dejar el pedido asentado, lo guardamos y lo revisamos cuando exista una operación.</p>
     </section>
     <section class="panel">
       <?php if ($ok): ?><p class="alert ok">Recibimos el arrepentimiento. Si la operación existe, la revisamos dentro del plazo de 10 días corridos.</p><?php endif; ?>

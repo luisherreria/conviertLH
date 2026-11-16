@@ -2,13 +2,13 @@
 
 require_once __DIR__ . '/src/Site.php';
 
-clh_head('Herramientas — ConvertLH');
+clh_head('Herramientas — SubliEdit');
 clh_nav('herramientas');
 ?>
 <main class="site" id="contenido">
-  <p class="kicker">Las seis</p>
-  <h1>Cada herramienta hace una sola cosa, y la hace en el lote.</h1>
-  <p class="lede">Podés subir hasta 8 archivos. Si hay más de un resultado, bajan en un ZIP. El permiso de cada una sale del plan, no de un interruptor escondido.</p>
+  <p class="kicker">Las siete</p>
+  <h1>Cada herramienta hace una sola cosa.</h1>
+  <p class="lede">Quitar fondo y escalar aceptan hasta 3 archivos, de 8 MB cada uno. Convertir, recortar, espejar, semitono y crear mockup usan una sola imagen, también de 8 MB. Si hay más de un resultado, bajan en un ZIP.</p>
 
   <div class="story-grid">
     <?php foreach (clh_tool_stories() as $story): ?>

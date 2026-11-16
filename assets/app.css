@@ -51,14 +51,9 @@ code {
 
 .mark {
   width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 750;
-  letter-spacing: -0.04em;
+  height: 52px;
+  display: block;
+  object-fit: contain;
 }
 
 h1 {
@@ -234,6 +229,129 @@ select, input[type="range"] {
   width: 100%;
 }
 
+.mockup-pick { position: relative; }
+
+.mockup-current {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 10px 36px 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+}
+
+.mockup-current::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  margin-top: -2px;
+  border: 5px solid transparent;
+  border-top-color: var(--muted);
+}
+
+.mockup-menu {
+  position: absolute;
+  z-index: 6;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  display: grid;
+  grid-template-columns: minmax(148px, 0.72fr) minmax(180px, 1fr);
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  background: #16130f;
+  box-shadow: var(--shadow);
+}
+
+.mockup-options {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+
+.mockup-options button {
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mockup-options button:hover,
+.mockup-options button.is-on {
+  background: #2a2418;
+}
+
+.mockup-options button[aria-selected="true"] {
+  color: var(--accent);
+}
+
+.mockup-preview {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  max-height: 280px;
+  object-fit: contain;
+  background: #0c0b09;
+  border-radius: 12px;
+}
+
+.ribbon-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ribbon-swatch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.ribbon-swatch input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+}
+
+.ribbon-swatch span {
+  width: 100%;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.ribbon-swatch small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ribbon-swatch input:checked + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ribbon-swatch input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ribbon-swatch input:checked ~ small {
+  color: var(--accent);
+}
+
 .is-muted { opacity: 0.45; }
 
 .actions {
@@ -383,6 +501,8 @@ button:disabled {
 }
 
 @media (max-width: 860px) {
+  .mockup-menu { grid-template-columns: 1fr; }
+  .mockup-preview { order: -1; max-height: 200px; }
   .top, .layout, .tools { display: grid; grid-template-columns: 1fr; }
   .lead { text-align: left; }
   .app { width: min(1120px, calc(100% - 20px)); }

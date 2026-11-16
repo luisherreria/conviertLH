@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-clh_head('Ayuda y contacto — ConvertLH');
+clh_head('Ayuda y contacto — SubliEdit');
 clh_nav('ayuda');
 ?>
 <main class="site" id="contenido">

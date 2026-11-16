@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-clh_head('Botón de baja — ConvertLH');
+clh_head('Botón de baja — SubliEdit');
 clh_nav('');
 ?>
 <main class="site" id="contenido">

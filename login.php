@@ -5,6 +5,7 @@ require_once __DIR__ . '/src/Site.php';
 clh_site_boot();
 
 $error = '';
+$held = '';
 $tab = (isset($_GET['alta']) && (string) $_GET['alta'] === '1') ? 'alta' : 'login';
 $old = [
     'name' => '',
@@ -18,7 +19,7 @@ if ($planSlug !== '' && $planSlug !== 'mesa') {
         $st->execute([$planSlug]);
         $plan = $st->fetch();
         if ($plan) {
-            $planNote = 'Elegiste ' . $plan['name'] . '. La cuenta nueva entra en Mesa, sin cobro. Ese plan se activa cuando conectemos Mercado Pago.';
+            $planNote = 'Elegiste ' . $plan['name'] . '. La cuenta nueva entra en Mesa. Después, en Precios, Elegir plan abre el pago y el plan se activa si Mercado Pago lo aprueba.';
             $tab = 'alta';
         }
     } catch (Exception $e) {
@@ -38,12 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!hash_equals($password, $again)) {
                 throw new UserException('Las contraseñas no coinciden.');
             }
-            clh_register($old['name'], $old['email'], $password, clh_current_theme());
+            $state = clh_register($old['name'], $old['email'], $password, clh_current_theme());
+            if ($state === 'pending') {
+                $held = 'Recibimos la cuenta, pero no la activamos. Esta IP o este navegador ya tiene una cuenta. Cuando la revisemos, vas a poder entrar.';
+            } else {
+                header('Location: taller.php');
+                exit;
+            }
         } else {
             clh_login($old['email'], isset($_POST['password']) ? (string) $_POST['password'] : '');
+            header('Location: taller.php');
+            exit;
         }
-        header('Location: taller.php');
-        exit;
     } catch (UserException $e) {
         $error = $e->getMessage();
     } catch (Exception $e) {
@@ -51,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-clh_head('Entrar — ConvertLH');
+clh_head('Entrar — SubliEdit');
 clh_nav('login');
 ?>
 <main class="site" id="contenido">
@@ -66,6 +73,7 @@ clh_nav('login');
       </div>
 
       <?php if ($error !== ''): ?><p class="alert"><?= clh_h($error) ?></p><?php endif; ?>
+      <?php if ($held !== ''): ?><p class="alert ok"><?= clh_h($held) ?></p><?php endif; ?>
       <?php if ($planNote !== ''): ?><p class="alert ok"><?= clh_h($planNote) ?></p><?php endif; ?>
 
       <form class="auth-form form-login" method="post" action="login.php">
@@ -97,12 +105,12 @@ clh_nav('login');
           <input type="password" name="password_again" autocomplete="new-password" required minlength="8" maxlength="200">
         </label>
         <button class="btn" type="submit">Crear cuenta</button>
-        <p class="fine">Al crear la cuenta aceptás los <a href="terminos.php">términos</a> y la <a href="privacidad.php">privacidad</a>. No se cobra nada: entrás en Mesa.</p>
+        <p class="fine">Al crear la cuenta aceptás los <a href="terminos.php">términos</a> y la <a href="privacidad.php">privacidad</a>. No se cobra nada: entrás en Mesa. Si esta PC o este navegador ya tiene una cuenta, la nueva queda en revisión.</p>
       </form>
     </section>
 
     <section>
-      <p class="kicker">ConvertLH</p>
+      <p class="kicker">SubliEdit</p>
       <h2>La cuenta guarda el plan, los créditos y el color.</h2>
       <div class="cards" style="grid-template-columns: 1fr; margin-top: 16px;">
         <?php foreach (clh_tool_stories() as $story): ?>

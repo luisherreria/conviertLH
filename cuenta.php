@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/src/Site.php';
+require_once __DIR__ . '/src/Payments.php';
 
 clh_site_boot();
 $user = clh_user();
@@ -17,13 +18,27 @@ try {
     $dbError = 'No pude leer los permisos del plan.';
 }
 
-clh_head('Mi cuenta — ConvertLH');
+$flash = clh_flash_take();
+$openPayment = null;
+try {
+    $openPayment = clh_payment_open($user);
+} catch (Exception $e) {
+    $openPayment = null;
+}
+
+clh_head('Mi cuenta — SubliEdit');
 clh_nav('cuenta');
 ?>
 <main class="site" id="contenido">
   <p class="kicker">Cuenta</p>
   <h1><?= clh_h($user['name']) ?></h1>
+  <?php if ($flash !== ''): ?>
+    <p class="alert"><?= clh_h($flash) ?></p>
+  <?php endif; ?>
   <p class="lede"><?= clh_h($user['email']) ?> · plan <?= clh_h($user['level_name']) ?> · <?= (int) $user['credits'] ?> créditos. El tema activo es <?= clh_h(clh_themes()[clh_current_theme()]['label']) ?>.</p>
+  <?php if ($openPayment): ?>
+    <p class="narrow">Hay un pago de <?= clh_h($openPayment['name']) ?> sin acreditar. <a href="pago-vuelta.php?ref=<?= clh_h(rawurlencode($openPayment['external_reference'])) ?>">Confirmar con Mercado Pago</a>.</p>
+  <?php endif; ?>
   <div class="hero-actions">
     <a class="btn" href="taller.php">Abrir taller</a>
     <a class="btn-line" href="precios.php">Ver planes</a>
@@ -45,7 +60,7 @@ clh_nav('cuenta');
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
-  <p class="narrow">El saldo está en la cuenta, pero todavía no se descuenta al procesar una imagen. El próximo paso es cobrar los planes con Mercado Pago y restar los créditos en cada trabajo de IA.</p>
+  <p class="narrow">El saldo está en la cuenta, pero todavía no se descuenta al procesar una imagen. El cobro del plan ya pasa por Mercado Pago.</p>
 </main>
 <?php
 clh_footer();
