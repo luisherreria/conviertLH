@@ -55,6 +55,56 @@ class Converter
         return $cropped;
     }
 
+    public static function solidify($image, $percent)
+    {
+        $percent = (int) $percent;
+        if ($percent < 1) {
+            $percent = 1;
+        }
+        if ($percent > 100) {
+            $percent = 100;
+        }
+        $width = imagesx($image);
+        $height = imagesy($image);
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        $limit = (int) floor(127 - ($percent / 100) * 127);
+        $erased = 0;
+        $solid = 0;
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $color = imagecolorat($image, $x, $y);
+                $alpha = ($color >> 24) & 127;
+                if ($alpha <= $limit) {
+                    if ($alpha !== 0) {
+                        $solid++;
+                        $opaque = imagecolorallocatealpha(
+                            $image,
+                            ($color >> 16) & 255,
+                            ($color >> 8) & 255,
+                            $color & 255,
+                            0
+                        );
+                        imagesetpixel($image, $x, $y, $opaque);
+                    }
+                    continue;
+                }
+                if ($alpha !== 127) {
+                    $erased++;
+                    $clear = imagecolorallocatealpha(
+                        $image,
+                        ($color >> 16) & 255,
+                        ($color >> 8) & 255,
+                        $color & 255,
+                        127
+                    );
+                    imagesetpixel($image, $x, $y, $clear);
+                }
+            }
+        }
+        return ['image' => $image, 'erased' => $erased, 'solid' => $solid];
+    }
+
     public static function cropToContent($image)
     {
         $width = imagesx($image);

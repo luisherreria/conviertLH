@@ -152,6 +152,19 @@ function clh_tool_stories()
             'body' => 'Sale un PNG. El punto negro es la tinta que va a leer el RIP. En la base blanca, un tope de 85 deja aire en los planos para que el polvo no forme una lámina.',
         ],
         [
+            'slug' => 'solid',
+            'anchor' => 'solidos',
+            'name' => 'Sólidos',
+            'kicker' => 'Local · sin créditos',
+            'lead' => 'Borra el borde semitransparente y deja macizo lo que pasa el corte.',
+            'points' => [
+                'No usa créditos ni sale a Replicate.',
+                'El corte elige desde qué opacidad el píxel se conserva.',
+                'Sale un PNG con el halo ya sacado.',
+            ],
+            'body' => 'Sirve para que el RIP no imprima el velo del borde. Lo que queda por debajo del corte desaparece. Lo que lo pasa queda opaco.',
+        ],
+        [
             'slug' => 'mockup',
             'anchor' => 'mockup',
             'name' => 'Crear Mockup',
@@ -177,7 +190,7 @@ function clh_faqs()
         ],
         [
             'q' => '¿Qué gasta créditos?',
-            'a' => 'Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Crear mockup usa 1. Convertir, recortar, espejar y semitono no gastan créditos.',
+            'a' => 'Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Crear mockup usa 1. Convertir, recortar, espejar, semitono y sólidos no gastan créditos.',
         ],
         [
             'q' => '¿Los créditos ya se descuentan al procesar?',
@@ -185,7 +198,7 @@ function clh_faqs()
         ],
         [
             'q' => '¿Guardan las imágenes?',
-            'a' => 'No las guardamos. Se procesan para armar la respuesta y se borran. Quitar fondo y escalar envían la imagen a Replicate para hacer ese trabajo. Convertir, recortar, espejar y semitono quedan en esta máquina.',
+            'a' => 'No las guardamos. Se procesan para armar la respuesta y se borran. Quitar fondo y escalar envían la imagen a Replicate para hacer ese trabajo. Convertir, recortar, espejar, semitono y sólidos quedan en esta máquina.',
         ],
         [
             'q' => '¿Puedo pagar en pesos?',
@@ -193,7 +206,7 @@ function clh_faqs()
         ],
         [
             'q' => '¿Todos los planes abren las mismas herramientas?',
-            'a' => 'No. Mesa incluye convertir, recortar, espejar, semitono y crear mockup. Puesto, Cuadrilla y Planta suman quitar fondo y escalar. Ese permiso está en la base, uno por herramienta, y se puede cambiar sin tocar el taller.',
+            'a' => 'No. Mesa incluye convertir, recortar, espejar, semitono, sólidos y crear mockup. Puesto, Cuadrilla y Planta suman quitar fondo y escalar. Ese permiso está en la base, uno por herramienta, y se puede cambiar sin tocar el taller.',
         ],
     ];
 }
@@ -288,7 +301,7 @@ function clh_legal_nav()
 function clh_footer()
 {
     echo '<footer class="colophon"><div class="colophon-in">';
-    echo '<div><strong>SubliEdit</strong><p>Siete herramientas para dejar imágenes listas. Fondo y escala con IA. El resto, en esta máquina.</p></div>';
+    echo '<div><strong>SubliEdit</strong><p>Ocho herramientas para dejar imágenes listas. Fondo y escala con IA. El resto, en esta máquina.</p></div>';
     echo '<div><span>Mapa</span><a href="herramientas.php">Herramientas</a><a href="precios.php">Precios</a><a href="ayuda.php">Ayuda</a><a href="taller.php">Abrir taller</a></div>';
     echo '<div><span>Cuenta y ley</span>';
     clh_legal_nav();

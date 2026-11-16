@@ -17,7 +17,7 @@ clh_nav('inicio');
 <main class="site" id="contenido">
   <p class="kicker">Taller de imágenes para imprimir y entregar</p>
   <h1>El archivo sale en un paso, no en una tarde.</h1>
-  <p class="lede">Siete herramientas en el navegador. Quitar fondo y escalar usan IA y créditos. Crear mockup usa 1 crédito. Convertir, recortar, espejar y semitono corren en esta máquina y no descuentan nada.</p>
+  <p class="lede">Ocho herramientas en el navegador. Quitar fondo y escalar usan IA y créditos. Crear mockup usa 1 crédito. Convertir, recortar, espejar, semitono y sólidos corren en esta máquina y no descuentan nada.</p>
   <div class="hero-actions">
     <a class="btn" href="login.php?alta=1">Crear cuenta</a>
     <a class="btn-line" href="herramientas.php">Ver herramientas</a>
@@ -53,7 +53,7 @@ clh_nav('inicio');
   </section>
 
   <section class="band">
-    <h2>Siete herramientas, en la misma pantalla.</h2>
+    <h2>Ocho herramientas, en la misma pantalla.</h2>
     <p>Cada una abre directo en el taller. El permiso de usarla depende del plan.</p>
     <div class="cards tools">
       <?php foreach ($stories as $story): ?>
@@ -99,7 +99,7 @@ clh_nav('inicio');
       </article>
       <article class="card">
         <h3>Permiso por herramienta</h3>
-        <p>Cada plan habilita o no cada una de las siete. No es un paquete cerrado para siempre.</p>
+        <p>Cada plan habilita o no cada una de las ocho. No es un paquete cerrado para siempre.</p>
       </article>
       <article class="card">
         <h3>Tres colores de tema</h3>
@@ -111,9 +111,9 @@ clh_nav('inicio');
   <section class="band">
     <h2>Números del taller, sin promesas de velocidad.</h2>
     <div class="stats">
-      <article class="stat"><strong>7</strong><span>herramientas en la misma pantalla</span></article>
+      <article class="stat"><strong>8</strong><span>herramientas en la misma pantalla</span></article>
       <article class="stat"><strong>2</strong><span>créditos por fondo o por escala 2×</span></article>
-      <article class="stat"><strong>0</strong><span>créditos por convertir, recortar, espejar o semitono</span></article>
+      <article class="stat"><strong>0</strong><span>créditos por convertir, recortar, espejar, semitono o sólidos</span></article>
     </div>
   </section>
 

@@ -6,9 +6,9 @@ clh_head('Herramientas — SubliEdit');
 clh_nav('herramientas');
 ?>
 <main class="site" id="contenido">
-  <p class="kicker">Las siete</p>
+  <p class="kicker">Las ocho</p>
   <h1>Cada herramienta hace una sola cosa.</h1>
-  <p class="lede">Quitar fondo y escalar aceptan hasta 3 archivos, de 8 MB cada uno. Convertir, recortar, espejar, semitono y crear mockup usan una sola imagen, también de 8 MB. Si hay más de un resultado, bajan en un ZIP.</p>
+  <p class="lede">Quitar fondo y escalar aceptan hasta 3 archivos, de 8 MB cada uno. Convertir, recortar, espejar, semitono, sólidos y crear mockup usan una sola imagen, también de 8 MB. Si hay más de un resultado, bajan en un ZIP.</p>
 
   <div class="story-grid">
     <?php foreach (clh_tool_stories() as $story): ?>

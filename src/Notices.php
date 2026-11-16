@@ -156,6 +156,8 @@ function clh_log_activity($userId, $tool, $mockup, $count, $scale)
         $detail = 'Espejó una imagen';
     } elseif ($tool === 'halftone') {
         $detail = 'Semitono para DTF';
+    } elseif ($tool === 'solid') {
+        $detail = 'Dejó los píxeles macizos';
     } elseif ($tool === 'mockup') {
         $label = 'plantilla';
         if (class_exists('Mockup')) {

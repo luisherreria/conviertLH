@@ -64,12 +64,12 @@ $account = clh_user();
         <img class="mark" src="assets/mark.png" alt="" width="46" height="52">
         <div>
           <h1>SubliEdit</h1>
-          <p>Quitar fondo, escalar y convertir</p>
+          <p>Ocho herramientas, en una pantalla</p>
         </div>
       </div>
       <p class="lead"><?php if ($account): ?>Plan <?= clh_h($account['level_name']) ?> · <?= (int) $account['credits'] ?> créditos. <?php endif; ?><?= $aiRemote
-        ? 'Quitar fondo y escalar usan Replicate. Convertir, recortar y espejar corren en esta PC.'
-        : 'Quitar fondo y escalar corren en esta PC. Convertir, recortar y espejar también.' ?></p>
+        ? 'Quitar fondo y escalar usan Replicate. El resto corre en esta PC.'
+        : 'Quitar fondo, escalar y el resto corren en esta PC.' ?></p>
     </header>
 
     <?php if ($aiRemote): ?>
@@ -105,10 +105,19 @@ $account = clh_user();
         <strong>Semitono</strong>
         <span>Puntos para DTF. Sin costo.</span>
       </button>
+      <button class="tool" type="button" data-tool="solid" role="tab" aria-pressed="false">
+        <strong>Sólidos</strong>
+        <span>Saca el halo. Sin costo.</span>
+      </button>
       <button class="tool" type="button" data-tool="mockup" role="tab" aria-pressed="false">
         <strong>Crear Mockup</strong>
         <span>1 crédito. Remera, taza, gorra, medalla y más.</span>
       </button>
+    </div>
+
+    <div class="tool-intro">
+      <h2 id="tool-title">Quitar fondo</h2>
+      <p id="tool-line">Separa el motivo del fondo. Sale un PNG transparente, o apoyado sobre un color.</p>
     </div>
 
     <div class="layout">
@@ -179,6 +188,11 @@ $account = clh_user();
             <p class="hint">Voltea una imagen en esta PC. No usa Replicate.</p>
           </div>
 
+          <div id="panel-solid" class="field" hidden>
+            <span class="label">Corte de opacidad <output id="solid-out" for="solid">40%</output></span>
+            <input id="solid" name="solid" type="range" min="1" max="100" value="40">
+            <p class="hint">Por debajo de este valor el píxel se borra. Desde ahí, queda macizo. Sale PNG. No usa Replicate.</p>
+          </div>
           <div id="panel-halftone" class="field" hidden>
             <span>Uso</span>
             <div class="choice">

@@ -115,25 +115,42 @@
     else clearError();
   }
 
+  var toolCopy = {
+    remove_bg: ['Quitar fondo', 'Separa el motivo del fondo. Sale un PNG transparente, o apoyado sobre un color.'],
+    upscale: ['Escalar', 'Agranda 2× o 4× reconstruyendo detalle. El lado resultante no pasa de 8000 px.'],
+    convert: ['Convertir', 'Pasa la imagen a PNG, JPG, WEBP, BMP o GIF. Elegís la calidad y, en PNG y JPG, el DPI.'],
+    crop: ['Recortar', 'Saca el margen vacío alrededor del motivo. Sirve el transparente o un color parejo en las esquinas.'],
+    flip: ['Espejar', 'Voltea la imagen en horizontal, en vertical o en ambos sentidos.'],
+    halftone: ['Semitono', 'Pasa la imagen a puntos redondos a 45°, para DTF. La foto usa los tonos y la base blanca, la opacidad.'],
+    solid: ['Sólidos', 'Borra el borde semitransparente. Lo que pasa el corte queda macizo y sale un PNG.'],
+    mockup: ['Crear Mockup', 'Apoya el diseño en remera, taza, gorra, medalla y el resto, y lo baja en JPG.']
+  };
+
   function setTool(next) {
     tool = next;
     document.getElementById('tool').value = next;
+    var copy = toolCopy[next];
+    if (copy) {
+      document.getElementById('tool-title').textContent = copy[0];
+      document.getElementById('tool-line').textContent = copy[1];
+    }
     Array.prototype.forEach.call(document.querySelectorAll('.tool'), function (button) {
       button.setAttribute('aria-pressed', button.getAttribute('data-tool') === next ? 'true' : 'false');
     });
-    var local = next === 'convert' || next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
+    var local = next === 'convert' || next === 'crop' || next === 'flip' || next === 'halftone' || next === 'solid' || next === 'mockup';
     document.getElementById('panel-keep').hidden = next !== 'remove_bg';
     document.getElementById('panel-scale').hidden = next !== 'upscale';
     document.getElementById('panel-format').hidden = next !== 'convert';
     document.getElementById('panel-bg-mode').hidden = next !== 'remove_bg';
-    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
+    document.getElementById('panel-color').hidden = next === 'upscale' || next === 'crop' || next === 'flip' || next === 'halftone' || next === 'solid' || next === 'mockup';
     document.getElementById('panel-flip').hidden = next !== 'flip';
     document.getElementById('panel-halftone').hidden = next !== 'halftone';
+    document.getElementById('panel-solid').hidden = next !== 'solid';
     document.getElementById('panel-mockup').hidden = next !== 'mockup';
     syncRibbon();
     document.getElementById('panel-crop-note').hidden = next !== 'crop';
-    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
-    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip' || next === 'halftone' || next === 'mockup';
+    document.getElementById('panel-crop-option').hidden = next === 'crop' || next === 'flip' || next === 'halftone' || next === 'solid' || next === 'mockup';
+    document.getElementById('crop-hint').hidden = next === 'crop' || next === 'flip' || next === 'halftone' || next === 'solid' || next === 'mockup';
     document.getElementById('fill-hint').hidden = next !== 'convert';
     document.getElementById('ai-hint').hidden = local;
     var input = document.getElementById('file-input');
@@ -317,6 +334,11 @@
   halftoneCap.addEventListener('input', function () {
     halftoneCapOut.textContent = halftoneCap.value + '%';
   });
+  var solidCut = document.getElementById('solid');
+  var solidOut = document.getElementById('solid-out');
+  solidCut.addEventListener('input', function () {
+    solidOut.textContent = solidCut.value + '%';
+  });
 
   document.getElementById('preset').addEventListener('click', function () {
     document.getElementById('crop').checked = true;
@@ -366,6 +388,7 @@
     data.set('halftone_cap', document.getElementById('halftone-cap').value);
     var ink = document.querySelector('input[name="halftone_ink"]:checked');
     data.set('halftone_ink', ink ? ink.value : 'black');
+    data.set('solid', document.getElementById('solid').value);
     data.set('mockup', document.getElementById('mockup').value);
     var ribbon = document.querySelector('input[name="ribbon"]:checked');
     data.set('ribbon', ribbon ? ribbon.value : 'azul');
@@ -493,6 +516,7 @@
     if (tool === 'crop') return 'Recortando en el servidor…';
     if (tool === 'flip') return 'Espejando en el servidor…';
     if (tool === 'halftone') return 'Armando el semitono en el servidor…';
+    if (tool === 'solid') return 'Dejando los píxeles macizos…';
     if (tool === 'mockup') return 'Armando el mockup en el servidor…';
     var step = total > 1 ? 'Imagen ' + (index + 1) + ' de ' + total + '. ' : '';
     if (tool === 'remove_bg') {
@@ -643,7 +667,7 @@
   }
 
   var requestedTool = new URLSearchParams(window.location.search).get('tool');
-  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone', 'mockup'].indexOf(requestedTool) === -1) {
+  if (!requestedTool || ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone', 'solid', 'mockup'].indexOf(requestedTool) === -1) {
     requestedTool = 'remove_bg';
   }
   setTool(requestedTool);

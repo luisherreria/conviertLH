@@ -11,7 +11,7 @@ clh_nav('');
   <p>Estos términos son de SubliEdit, el taller de imágenes de esta instalación. No reemplazan el asesoramiento de un abogado. La ley aplicable es la de la República Argentina.</p>
 
   <h2>El servicio</h2>
-  <p>SubliEdit ofrece siete herramientas: quitar fondo, escalar, convertir, recortar, espejar, semitono y crear mockup. Quitar fondo y escalar usan modelos de IA a través de Replicate. Crear mockup usa 1 crédito y se arma en este servidor. Convertir, recortar, espejar y semitono se procesan en el servidor donde está instalado el taller.</p>
+  <p>SubliEdit ofrece ocho herramientas: quitar fondo, escalar, convertir, recortar, espejar, semitono, sólidos y crear mockup. Quitar fondo y escalar usan modelos de IA a través de Replicate. Crear mockup usa 1 crédito y se arma en este servidor. Convertir, recortar, espejar, semitono y sólidos se procesan en el servidor donde está instalado el taller.</p>
   <p>El resultado depende de la imagen de origen. No prometemos un archivo listo para imprimir en todos los casos, ni un tiempo fijo de respuesta.</p>
 
   <h2>La cuenta</h2>
@@ -19,7 +19,7 @@ clh_nav('');
   <p>Sos responsable de la contraseña y de lo que se suba desde tu sesión.</p>
 
   <h2>Créditos y precios</h2>
-  <p>Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Crear mockup usa 1 crédito. Convertir, recortar, espejar y semitono no usan créditos. Los precios publicados están en pesos argentinos. Elegir un plan pago abre Mercado Pago. El plan y los créditos del mes se cargan cuando ese pago queda aprobado, por el monto de la oferta vigente en ese momento. El saldo y cada movimiento quedan en la cuenta.</p>
+  <p>Quitar fondo usa 2 créditos. Escalar 2× usa 2 y escalar 4× usa 4. Crear mockup usa 1 crédito. Convertir, recortar, espejar, semitono y sólidos no usan créditos. Los precios publicados están en pesos argentinos. Elegir un plan pago abre Mercado Pago. El plan y los créditos del mes se cargan cuando ese pago queda aprobado, por el monto de la oferta vigente en ese momento. El saldo y cada movimiento quedan en la cuenta.</p>
   <p>El descuento de créditos al procesar cada imagen todavía no está activo.</p>
 
   <h2>Archivos</h2>
@@ -28,7 +28,7 @@ clh_nav('');
   <p>Quitar fondo y escalar envían la imagen a Replicate. Esa parte del trabajo sigue las condiciones de ese proveedor, además de estas.</p>
 
   <h2>Límites</h2>
-  <p>Quitar fondo y escalar aceptan hasta 3 imágenes de 8 MB. Convertir, recortar, espejar, semitono y crear mockup aceptan una imagen de 8 MB. El GIF no conserva la animación. TIFF, ICO y AVIF no están disponibles en este PHP.</p>
+  <p>Quitar fondo y escalar aceptan hasta 3 imágenes de 8 MB. Convertir, recortar, espejar, semitono, sólidos y crear mockup aceptan una imagen de 8 MB. El GIF no conserva la animación. TIFF, ICO y AVIF no están disponibles en este PHP.</p>
 
   <h2>Pagos, arrepentimiento y baja</h2>
   <p>Los planes pagos se procesan en pesos con Mercado Pago. El botón de arrepentimiento permite revocar la aceptación de una compra dentro de los 10 días corridos, conforme el artículo 34 de la Ley 24.240. El botón de baja cancela la cuenta.</p>

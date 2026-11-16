@@ -21,7 +21,7 @@ try {
 <main class="site" id="contenido">
   <p class="kicker">Precios de lista</p>
   <h1>Simple, en pesos, con permiso por herramienta.</h1>
-  <p class="lede">Elegir un plan pago abre Mercado Pago. El plan y los créditos del mes se cargan cuando el pago queda aprobado. Crear una cuenta no cobra y entra en Mesa. Quitar fondo y escalar 2× usan 2 créditos. Escalar 4× usa 4. Convertir, recortar, espejar y semitono no usan.</p>
+  <p class="lede">Elegir un plan pago abre Mercado Pago. El plan y los créditos del mes se cargan cuando el pago queda aprobado. Crear una cuenta no cobra y entra en Mesa. Quitar fondo y escalar 2× usan 2 créditos. Escalar 4× usa 4. Convertir, recortar, espejar, semitono y sólidos no usan.</p>
   <?php
     $sandbox = false;
     try {

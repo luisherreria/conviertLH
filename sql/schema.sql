@@ -125,7 +125,8 @@ INSERT INTO tools (slug, name, summary, credit_cost, credit_note, sort_order) VA
 ('crop', 'Recortar', 'Saca el margen vacío.', 0, 'No usa créditos.', 4),
 ('flip', 'Espejar', 'Horizontal, vertical o ambos.', 0, 'No usa créditos.', 5),
 ('halftone', 'Semitono', 'Puntos para DTF, foto o base blanca.', 0, 'No usa créditos.', 6),
-('mockup', 'Crear Mockup', 'Diseño sobre remera, taza, gorra, medalla, mate, jarro o cartuchera.', 1, 'Cada imagen usa 1 crédito.', 7)
+('solid', 'Sólidos', 'Saca el halo y deja el píxel macizo.', 0, 'No usa créditos.', 7),
+('mockup', 'Crear Mockup', 'Diseño sobre remera, taza, gorra, medalla, mate, jarro o cartuchera.', 1, 'Cada imagen usa 1 crédito.', 8)
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   summary = VALUES(summary),
@@ -140,6 +141,7 @@ INSERT INTO level_tools (level_id, tool, allowed) VALUES
 (1, 'crop', 1),
 (1, 'flip', 1),
 (1, 'halftone', 1),
+(1, 'solid', 1),
 (1, 'mockup', 1),
 (2, 'remove_bg', 1),
 (2, 'upscale', 1),
@@ -147,6 +149,7 @@ INSERT INTO level_tools (level_id, tool, allowed) VALUES
 (2, 'crop', 1),
 (2, 'flip', 1),
 (2, 'halftone', 1),
+(2, 'solid', 1),
 (2, 'mockup', 1),
 (3, 'remove_bg', 1),
 (3, 'upscale', 1),
@@ -154,6 +157,7 @@ INSERT INTO level_tools (level_id, tool, allowed) VALUES
 (3, 'crop', 1),
 (3, 'flip', 1),
 (3, 'halftone', 1),
+(3, 'solid', 1),
 (3, 'mockup', 1),
 (4, 'remove_bg', 1),
 (4, 'upscale', 1),
@@ -161,5 +165,6 @@ INSERT INTO level_tools (level_id, tool, allowed) VALUES
 (4, 'crop', 1),
 (4, 'flip', 1),
 (4, 'halftone', 1),
+(4, 'solid', 1),
 (4, 'mockup', 1)
 ON DUPLICATE KEY UPDATE allowed = VALUES(allowed);

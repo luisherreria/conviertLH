@@ -23,8 +23,8 @@ class Processor
     private function run(array $post, array $files, $job)
     {
         $tool = isset($post['tool']) ? (string) $post['tool'] : '';
-        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone', 'mockup'], true)) {
-            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar, espejar, semitono o mockup.');
+        if (!in_array($tool, ['remove_bg', 'upscale', 'convert', 'crop', 'flip', 'halftone', 'solid', 'mockup'], true)) {
+            throw new UserException('Elegí una herramienta: quitar fondo, escalar, convertir, recortar, espejar, semitono, sólidos o mockup.');
         }
 
         $scale = isset($post['scale']) ? (int) $post['scale'] : 2;
@@ -91,6 +91,10 @@ class Processor
         if ($tool === 'mockup' && !isset(Mockup::options()[$mockup])) {
             throw new UserException('Elegí una plantilla.');
         }
+        $solid = isset($post['solid']) ? (int) $post['solid'] : 40;
+        if ($solid < 1 || $solid > 100) {
+            throw new UserException('El corte de opacidad tiene que estar entre 1 y 100.');
+        }
         $ribbon = isset($post['ribbon']) ? (string) $post['ribbon'] : 'azul';
         if ($tool === 'mockup' && $mockup === 'medalla' && !isset(Mockup::ribbons()[$ribbon])) {
             throw new UserException('Elegí un color de cinta.');
@@ -106,7 +110,7 @@ class Processor
                 : 'Podés subir hasta ' . $maxFiles . ' imágenes por vez.');
         }
 
-        if (!in_array($tool, ['convert', 'crop', 'flip', 'halftone', 'mockup'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
+        if (!in_array($tool, ['convert', 'crop', 'flip', 'halftone', 'solid', 'mockup'], true) && !$this->usesReplicate() && !LocalRunner::isReady()) {
             throw new UserException('Falta el token de Replicate. Convertir formatos sigue disponible.');
         }
 
@@ -142,6 +146,7 @@ class Processor
                     $lpi,
                     $halftoneCap,
                     $halftoneInk,
+                    $solid,
                     $mockup,
                     $ribbon,
                     $notices
@@ -220,11 +225,30 @@ class Processor
         return trim((string) ($this->config['replicate_token'] ?? '')) !== '';
     }
 
-    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, $halftone, $lpi, $halftoneCap, $halftoneInk, $mockup, $ribbon, array &$notices)
+    private function processOne($tool, $path, $mime, $originalName, $index, $scale, $format, $quality, $background, $color, $crop, $dpi, $keep, $flip, $halftone, $lpi, $halftoneCap, $halftoneInk, $solid, $mockup, $ribbon, array &$notices)
     {
         if ($tool === 'mockup') {
             $image = Mockup::place($path, $mockup, $ribbon);
             return $this->finishLocal($image, 'jpg', 90, false, $color, false, $dpi, $originalName, $index, $notices);
+        }
+
+        if ($tool === 'solid') {
+            $result = Converter::solidify(Converter::load($path), $solid);
+            if ($result['erased'] === 0 && $result['solid'] === 0) {
+                $notices[] = 'No había transparencia parcial. El PNG sale igual.';
+            }
+            return $this->finishLocal(
+                $result['image'],
+                'png',
+                92,
+                false,
+                $color,
+                false,
+                $dpi,
+                $originalName,
+                $index,
+                $notices
+            );
         }
 
         if ($tool === 'halftone') {
